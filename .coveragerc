@@ -1,0 +1,7 @@
+[run]
+branch = True
+source = concurrency
+omit = concurrency/tests/*,concurrency/openstack/*
+
+[report]
+ignore-errors = True
