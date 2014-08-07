@@ -29,8 +29,8 @@ from eventlet.green import subprocess
 from eventlet import greenthread
 import six
 
-from openstack.common.gettextutils import _
-from openstack.common import strutils
+from oslo.concurrency.openstack.common.gettextutils import _  # noqa
+from oslo.concurrency.openstack.common import strutils
 
 
 LOG = logging.getLogger(__name__)

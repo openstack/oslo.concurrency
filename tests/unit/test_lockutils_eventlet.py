@@ -21,7 +21,7 @@ eventlet.monkey_patch()
 from eventlet import greenpool
 from oslotest import base as test_base
 
-from openstack.common import lockutils
+from oslo.concurrency import lockutils
 
 
 class TestFileLocks(test_base.BaseTestCase):

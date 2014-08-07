@@ -15,7 +15,7 @@
 
 import fixtures
 
-from oslo.concurrency import lockutils
+from oslo.concurrency.openstack.common import lockutils
 
 
 class LockFixture(fixtures.Fixture):

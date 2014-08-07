@@ -25,7 +25,7 @@ import mock
 from oslotest import base as test_base
 import six
 
-from openstack.common import processutils
+from oslo.concurrency import processutils
 
 
 class UtilsTest(test_base.BaseTestCase):
@@ -233,14 +233,14 @@ def fake_execute_raises(*cmd, **kwargs):
 class TryCmdTestCase(test_base.BaseTestCase):
     def test_keep_warnings(self):
         self.useFixture(fixtures.MonkeyPatch(
-            'openstack.common.processutils.execute', fake_execute))
+            'oslo.concurrency.processutils.execute', fake_execute))
         o, e = processutils.trycmd('this is a command'.split(' '))
         self.assertNotEqual('', o)
         self.assertNotEqual('', e)
 
     def test_keep_warnings_from_raise(self):
         self.useFixture(fixtures.MonkeyPatch(
-            'openstack.common.processutils.execute', fake_execute_raises))
+            'oslo.concurrency.processutils.execute', fake_execute_raises))
         o, e = processutils.trycmd('this is a command'.split(' '),
                                    discard_warnings=True)
         self.assertIsNotNone(o)
@@ -248,7 +248,7 @@ class TryCmdTestCase(test_base.BaseTestCase):
 
     def test_discard_warnings(self):
         self.useFixture(fixtures.MonkeyPatch(
-            'openstack.common.processutils.execute', fake_execute))
+            'oslo.concurrency.processutils.execute', fake_execute))
         o, e = processutils.trycmd('this is a command'.split(' '),
                                    discard_warnings=True)
         self.assertIsNotNone(o)
