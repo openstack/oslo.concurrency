@@ -28,8 +28,8 @@ import weakref
 
 from oslo.config import cfg
 
+from oslo.concurrency._i18n import _, _LE, _LI  # noqa
 from oslo.concurrency.openstack.common import fileutils
-from oslo.concurrency.openstack.common.gettextutils import _, _LE, _LI  # noqa
 
 
 LOG = logging.getLogger(__name__)
