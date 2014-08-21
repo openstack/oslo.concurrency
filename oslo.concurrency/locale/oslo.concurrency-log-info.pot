@@ -1,0 +1,32 @@
+# Translations template for oslo.concurrency.
+# Copyright (C) 2014 ORGANIZATION
+# This file is distributed under the same license as the oslo.concurrency
+# project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2014.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: oslo.concurrency 719987f\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2014-08-21 06:07+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 1.3\n"
+
+#: oslo/concurrency/lockutils.py:82
+#: oslo/concurrency/openstack/common/lockutils.py:82
+#, python-format
+msgid "Created lock path: %s"
+msgstr ""
+
+#: oslo/concurrency/lockutils.py:251
+#: oslo/concurrency/openstack/common/lockutils.py:251
+#, python-format
+msgid "Failed to remove file %(file)s"
+msgstr ""
+
