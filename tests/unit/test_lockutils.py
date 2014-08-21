@@ -427,6 +427,15 @@ class FileBasedLockingTestCase(test_base.BaseTestCase):
         thread.join()
         self.assertEqual(call_list, ['other', 'other', 'main', 'main'])
 
+    def test_non_destructive(self):
+        lock_file = os.path.join(self.lock_dir, 'not-destroyed')
+        with open(lock_file, 'w') as f:
+            f.write('test')
+        with lockutils.lock('not-destroyed', external=True,
+                            lock_path=self.lock_dir):
+            with open(lock_file) as f:
+                self.assertEqual(f.read(), 'test')
+
 
 class LockutilsModuleTestCase(test_base.BaseTestCase):
 
