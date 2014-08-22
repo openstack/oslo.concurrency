@@ -27,10 +27,10 @@ import signal
 
 from eventlet.green import subprocess
 from eventlet import greenthread
+from oslo.utils import strutils
 import six
 
 from oslo.concurrency.openstack.common.gettextutils import _  # noqa
-from oslo.concurrency.openstack.common import strutils
 
 
 LOG = logging.getLogger(__name__)
