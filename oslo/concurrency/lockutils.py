@@ -40,7 +40,9 @@ util_opts = [
                 help='Enables or disables inter-process locks.'),
     cfg.StrOpt('lock_path',
                default=os.environ.get("OSLO_LOCK_PATH"),
-               help='Directory to use for lock files.')
+               help='Directory to use for lock files.  For security, the '
+                    'specified directory should only be writable by the user '
+                    'running the processes that need locking.')
 ]
 
 
@@ -81,7 +83,10 @@ class _FileLock(object):
             fileutils.ensure_tree(basedir)
             LOG.info(_LI('Created lock path: %s'), basedir)
 
-        self.lockfile = open(self.fname, 'w')
+        # Open in append mode so we don't overwrite any potential contents of
+        # the target file.  This eliminates the possibility of an attacker
+        # creating a symlink to an important file in our lock_path.
+        self.lockfile = open(self.fname, 'a')
 
         while True:
             try:
