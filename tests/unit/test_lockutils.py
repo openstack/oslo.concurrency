@@ -17,6 +17,7 @@ import fcntl
 import multiprocessing
 import os
 import shutil
+import signal
 import sys
 import tempfile
 import threading
@@ -384,12 +385,34 @@ class FileBasedLockingTestCase(test_base.BaseTestCase):
                 time.sleep(0)
             lock1 = lockutils.InterProcessLock('foo')
             lock1.lockfile = open(lock_file, 'w')
-            self.assertRaises(IOError, lock1.trylock)
+            # NOTE(bnemec): There is a brief window between when the lock file
+            # is created and when it actually becomes locked.  If we happen to
+            # context switch in that window we may succeed in locking the
+            # file.  Keep retrying until we either get the expected exception
+            # or timeout waiting.
+            while time.time() - start < 5:
+                try:
+                    lock1.trylock()
+                    lock1.unlock()
+                    time.sleep(0)
+                except IOError:
+                    # This is what we expect to happen
+                    break
+            else:
+                self.fail('Never caught expected lock exception')
+            # We don't need to wait for the full sleep in the child here
+            os.kill(pid, signal.SIGKILL)
         else:
             try:
                 lock2 = lockutils.InterProcessLock('foo')
                 lock2.lockfile = open(lock_file, 'w')
-                lock2.trylock()
+                have_lock = False
+                while not have_lock:
+                    try:
+                        lock2.trylock()
+                        have_lock = True
+                    except IOError:
+                        pass
             finally:
                 # NOTE(bnemec): This is racy, but I don't want to add any
                 # synchronization primitives that might mask a problem
@@ -416,6 +439,11 @@ class FileBasedLockingTestCase(test_base.BaseTestCase):
         thread = threading.Thread(target=other, args=('other',))
         thread.start()
         # Make sure the other thread grabs the lock
+        # NOTE(bnemec): File locks do not actually work between threads, so
+        # this test is verifying that the local semaphore is still enforcing
+        # external locks in that case.  This means this test does not have
+        # the same race problem as the process test above because when the
+        # file is created the semaphore has already been grabbed.
         start = time.time()
         while not os.path.exists(os.path.join(self.lock_dir, 'foo')):
             if time.time() - start > 5:
