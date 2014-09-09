@@ -17,7 +17,6 @@
 System-level utilities and helper functions.
 """
 
-import errno
 import logging
 import multiprocessing
 import os
@@ -136,7 +135,7 @@ def execute(*cmd, **kwargs):
     :raises:                :class:`UnknownArgumentError` on
                             receiving unknown arguments
     :raises:                :class:`ProcessExecutionError`
-
+    :raises:                :class:`OSError`
     """
 
     process_input = kwargs.pop('process_input', None)
@@ -195,20 +194,9 @@ def execute(*cmd, **kwargs):
                                    preexec_fn=preexec_fn,
                                    shell=shell,
                                    env=env_variables)
-            result = None
-            for _i in six.moves.range(20):
-                # NOTE(russellb) 20 is an arbitrary number of retries to
-                # prevent any chance of looping forever here.
-                try:
-                    if process_input is not None:
-                        result = obj.communicate(process_input)
-                    else:
-                        result = obj.communicate()
-                except OSError as e:
-                    if e.errno in (errno.EAGAIN, errno.EINTR):
-                        continue
-                    raise
-                break
+
+            result = obj.communicate(process_input)
+
             obj.stdin.close()  # pylint: disable=E1101
             _returncode = obj.returncode  # pylint: disable=E1101
             LOG.log(loglevel, 'Result was %s' % _returncode)
@@ -221,25 +209,34 @@ def execute(*cmd, **kwargs):
                                             stderr=sanitized_stderr,
                                             cmd=sanitized_cmd)
             return result
-        except ProcessExecutionError as err:
+
+        except (ProcessExecutionError, OSError) as err:
             # if we want to always log the errors or if this is
             # the final attempt that failed and we want to log that.
             if log_errors == LOG_ALL_ERRORS or (
                     log_errors == LOG_FINAL_ERROR and not attempts):
-                format = _('%(desc)r\ncommand: %(cmd)r\n'
-                           'exit code: %(code)r\nstdout: %(stdout)r\n'
-                           'stderr: %(stderr)r')
-                LOG.log(loglevel, format, {"desc": err.description,
-                                           "cmd": err.cmd,
-                                           "code": err.exit_code,
-                                           "stdout": err.stdout,
-                                           "stderr": err.stderr})
+                if isinstance(err, ProcessExecutionError):
+                    format = _('%(desc)r\ncommand: %(cmd)r\n'
+                               'exit code: %(code)r\nstdout: %(stdout)r\n'
+                               'stderr: %(stderr)r')
+                    LOG.log(loglevel, format, {"desc": err.description,
+                                               "cmd": err.cmd,
+                                               "code": err.exit_code,
+                                               "stdout": err.stdout,
+                                               "stderr": err.stderr})
+                else:
+                    format = _('Got an OSError\ncommand: %(cmd)r\n'
+                               'errno: %(errno)r')
+                    LOG.log(loglevel, format, {"cmd": sanitized_cmd,
+                                               "errno": err.errno})
 
             if not attempts:
-                LOG.log(loglevel, _('%r failed. Not Retrying.'), err.cmd)
+                LOG.log(loglevel, _('%r failed. Not Retrying.'),
+                        sanitized_cmd)
                 raise
             else:
-                LOG.log(loglevel, _('%r failed. Retrying.'), err.cmd)
+                LOG.log(loglevel, _('%r failed. Retrying.'),
+                        sanitized_cmd)
                 if delay_on_retry:
                     greenthread.sleep(random.randint(20, 200) / 100.0)
         finally:
