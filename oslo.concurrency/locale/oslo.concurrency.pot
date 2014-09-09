@@ -7,9 +7,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: oslo.concurrency 36f6d8f\n"
+"Project-Id-Version: oslo.concurrency 4e7a576\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2014-08-24 06:07+0000\n"
+"POT-Creation-Date: 2014-09-09 06:08+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 1.3\n"
 
-#: oslo/concurrency/lockutils.py:101
+#: oslo/concurrency/lockutils.py:106
 #: oslo/concurrency/openstack/common/lockutils.py:101
 #, python-format
 msgid "Unable to acquire lock on `%(filename)s` due to %(exception)s"
@@ -38,30 +38,50 @@ msgid ""
 "Stderr: %(stderr)r"
 msgstr ""
 
-#: oslo/concurrency/processutils.py:143
+#: oslo/concurrency/processutils.py:161
 #, python-format
 msgid "Got unknown keyword args: %r"
 msgstr ""
 
-#: oslo/concurrency/processutils.py:148
+#: oslo/concurrency/processutils.py:164
+#, python-format
+msgid "Got invalid arg log_errors: %r"
+msgstr ""
+
+#: oslo/concurrency/processutils.py:170
 msgid "Command requested root, but did not specify a root helper."
 msgstr ""
 
-#: oslo/concurrency/processutils.py:158
+#: oslo/concurrency/processutils.py:180
 #, python-format
 msgid "Running cmd (subprocess): %s"
 msgstr ""
 
-#: oslo/concurrency/processutils.py:206
+#: oslo/concurrency/processutils.py:229
+#, python-format
+msgid ""
+"%(desc)r\n"
+"command: %(cmd)r\n"
+"exit code: %(code)r\n"
+"stdout: %(stdout)r\n"
+"stderr: %(stderr)r"
+msgstr ""
+
+#: oslo/concurrency/processutils.py:239
+#, python-format
+msgid "%r failed. Not Retrying."
+msgstr ""
+
+#: oslo/concurrency/processutils.py:242
 #, python-format
 msgid "%r failed. Retrying."
 msgstr ""
 
-#: oslo/concurrency/processutils.py:247
+#: oslo/concurrency/processutils.py:284
 msgid "Environment not supported over SSH"
 msgstr ""
 
-#: oslo/concurrency/processutils.py:251
+#: oslo/concurrency/processutils.py:288
 msgid "process_input not supported over SSH"
 msgstr ""
 
