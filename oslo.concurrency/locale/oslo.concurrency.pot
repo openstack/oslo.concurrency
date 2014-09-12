@@ -7,9 +7,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: oslo.concurrency 4e7a576\n"
+"Project-Id-Version: oslo.concurrency 1a50071\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2014-09-09 06:08+0000\n"
+"POT-Creation-Date: 2014-09-11 06:10+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -24,11 +24,11 @@ msgstr ""
 msgid "Unable to acquire lock on `%(filename)s` due to %(exception)s"
 msgstr ""
 
-#: oslo/concurrency/processutils.py:59
+#: oslo/concurrency/processutils.py:58
 msgid "Unexpected error while running command."
 msgstr ""
 
-#: oslo/concurrency/processutils.py:62
+#: oslo/concurrency/processutils.py:61
 #, python-format
 msgid ""
 "%(description)s\n"
@@ -38,26 +38,26 @@ msgid ""
 "Stderr: %(stderr)r"
 msgstr ""
 
-#: oslo/concurrency/processutils.py:161
+#: oslo/concurrency/processutils.py:160
 #, python-format
 msgid "Got unknown keyword args: %r"
 msgstr ""
 
-#: oslo/concurrency/processutils.py:164
+#: oslo/concurrency/processutils.py:163
 #, python-format
 msgid "Got invalid arg log_errors: %r"
 msgstr ""
 
-#: oslo/concurrency/processutils.py:170
+#: oslo/concurrency/processutils.py:169
 msgid "Command requested root, but did not specify a root helper."
 msgstr ""
 
-#: oslo/concurrency/processutils.py:180
+#: oslo/concurrency/processutils.py:179
 #, python-format
 msgid "Running cmd (subprocess): %s"
 msgstr ""
 
-#: oslo/concurrency/processutils.py:229
+#: oslo/concurrency/processutils.py:219
 #, python-format
 msgid ""
 "%(desc)r\n"
@@ -67,21 +67,29 @@ msgid ""
 "stderr: %(stderr)r"
 msgstr ""
 
-#: oslo/concurrency/processutils.py:239
+#: oslo/concurrency/processutils.py:228
+#, python-format
+msgid ""
+"Got an OSError\n"
+"command: %(cmd)r\n"
+"errno: %(errno)r"
+msgstr ""
+
+#: oslo/concurrency/processutils.py:234
 #, python-format
 msgid "%r failed. Not Retrying."
 msgstr ""
 
-#: oslo/concurrency/processutils.py:242
+#: oslo/concurrency/processutils.py:238
 #, python-format
 msgid "%r failed. Retrying."
 msgstr ""
 
-#: oslo/concurrency/processutils.py:284
+#: oslo/concurrency/processutils.py:281
 msgid "Environment not supported over SSH"
 msgstr ""
 
-#: oslo/concurrency/processutils.py:288
+#: oslo/concurrency/processutils.py:285
 msgid "process_input not supported over SSH"
 msgstr ""
 
