@@ -27,8 +27,8 @@ import mock
 from oslotest import base as test_base
 import six
 
-from oslo.concurrency.openstack.common.fixture import mockpatch
 from oslo.concurrency import processutils
+from oslotest import mockpatch
 PROCESS_EXECUTION_ERROR_LOGGING_TEST = """#!/bin/bash
 exit 41"""
 
