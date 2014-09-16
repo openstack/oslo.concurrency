@@ -117,12 +117,20 @@ class _FileLock(object):
 
     def release(self):
         try:
+            LOG.debug('Releasing file lock "%s"', self.fname)
             self.unlock()
-            self.lockfile.close()
-            LOG.debug('Released file lock "%s"', self.fname)
         except IOError:
-            LOG.exception(_LE("Could not release the acquired lock `%s`"),
+            LOG.exception(_LE("Could not unlock the acquired lock `%s`"),
                           self.fname)
+        else:
+            try:
+                self.lockfile.close()
+            except IOError:
+                LOG.exception(_LE("Could not close the acquired file handle"
+                                  " `%s`"), self.fname)
+            else:
+                LOG.debug('Released and closed file lock associated with'
+                          ' "%s"', self.fname)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.release()
