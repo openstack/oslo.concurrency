@@ -29,7 +29,7 @@ from six import moves
 
 from oslo.concurrency.fixture import lockutils as fixtures
 from oslo.concurrency import lockutils
-from oslo.concurrency.openstack.common.fixture import config
+from oslo.config import fixture as config
 
 
 class LockTestCase(test_base.BaseTestCase):
