@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: oslo.concurrency\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2014-09-18 06:12+0000\n"
+"POT-Creation-Date: 2014-09-22 06:07+0000\n"
 "PO-Revision-Date: 2014-09-02 09:06+0000\n"
 "Last-Translator: Andi Chandler <andi@gowling.com>\n"
 "Language-Team: English (United Kingdom) (http://www.transifex.com/projects/p/"
@@ -40,8 +40,3 @@ msgstr "Original exception being dropped: %s"
 #, python-format
 msgid "Unexpected exception occurred %d time(s)... retrying."
 msgstr "Unexpected exception occurred %d time(s)... retrying."
-
-#: oslo/concurrency/openstack/common/lockutils.py:119
-#, python-format
-msgid "Could not release the acquired lock `%s`"
-msgstr "Could not release the acquired lock `%s`"
