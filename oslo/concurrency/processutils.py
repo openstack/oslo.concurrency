@@ -23,6 +23,7 @@ import os
 import random
 import shlex
 import signal
+import time
 
 from eventlet.green import subprocess
 from eventlet import greenthread
@@ -176,6 +177,7 @@ def execute(*cmd, **kwargs):
     while attempts > 0:
         attempts -= 1
         try:
+            start_time = time.time()
             LOG.log(loglevel, _('Running cmd (subprocess): %s'), sanitized_cmd)
             _PIPE = subprocess.PIPE  # pylint: disable=E1101
 
@@ -199,7 +201,9 @@ def execute(*cmd, **kwargs):
 
             obj.stdin.close()  # pylint: disable=E1101
             _returncode = obj.returncode  # pylint: disable=E1101
-            LOG.log(loglevel, 'Result was %s' % _returncode)
+            end_time = time.time() - start_time
+            LOG.log(loglevel, 'CMD "%s" returned: %s in %ss' %
+                    (sanitized_cmd, _returncode, end_time))
             if not ignore_exit_code and _returncode not in check_exit_code:
                 (stdout, stderr) = result
                 sanitized_stdout = strutils.mask_password(stdout)
