@@ -28,7 +28,7 @@ import weakref
 
 from oslo.config import cfg
 
-from oslo.concurrency._i18n import _, _LE, _LI  # noqa
+from oslo.concurrency._i18n import _, _LE, _LI
 from oslo.concurrency.openstack.common import fileutils
 
 
