@@ -27,6 +27,7 @@ import time
 import weakref
 
 from oslo.config import cfg
+from oslo.config import cfgfilter
 
 from oslo.concurrency._i18n import _, _LE, _LI
 from oslo.concurrency.openstack.common import fileutils
@@ -48,7 +49,7 @@ _opts = [
 ]
 
 
-CONF = cfg.CONF
+CONF = cfgfilter.ConfigFilter(cfg.CONF)
 CONF.register_opts(_opts, group='oslo_concurrency')
 
 

@@ -34,7 +34,7 @@ class LockTestCase(test_base.BaseTestCase):
 
     def setUp(self):
         super(LockTestCase, self).setUp()
-        self.config = self.useFixture(config.Config()).config
+        self.config = self.useFixture(config.Config(lockutils.CONF)).config
 
     def test_synchronized_wrapped_function_metadata(self):
         @lockutils.synchronized('whatever', 'test-')
@@ -485,7 +485,7 @@ class TestLockFixture(test_base.BaseTestCase):
 
     def setUp(self):
         super(TestLockFixture, self).setUp()
-        self.config = self.useFixture(config.Config()).config
+        self.config = self.useFixture(config.Config(lockutils.CONF)).config
         self.tempdir = tempfile.mkdtemp()
 
     def _check_in_lock(self):
