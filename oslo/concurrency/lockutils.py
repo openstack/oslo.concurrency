@@ -332,11 +332,14 @@ def synchronized_with_prefix(lock_file_prefix):
     return functools.partial(synchronized, lock_file_prefix=lock_file_prefix)
 
 
-def main(argv):
+def lock_wrapper(argv):
     """Create a dir for locks and pass it to command from arguments
 
+    This is exposed as a console script entry point named
+    oslo-concurrency-lock-wrapper
+
     If you run this:
-    python -m openstack.common.lockutils python setup.py testr <etc>
+        oslo-concurrency-lock-wrapper python setup.py testr <etc>
 
     a temporary directory will be created for all your locks and passed to all
     your tests in an environment variable. The temporary dir will be deleted
@@ -352,5 +355,5 @@ def main(argv):
     return ret_val
 
 
-if __name__ == '__main__':
-    sys.exit(main(sys.argv))
+def main():
+    sys.exit(lock_wrapper(sys.argv))

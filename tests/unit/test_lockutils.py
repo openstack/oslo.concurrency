@@ -22,10 +22,8 @@ import tempfile
 import threading
 import time
 
-from oslo.config import cfg
 from oslotest import base as test_base
 import six
-from six import moves
 
 from oslo.concurrency.fixture import lockutils as fixtures
 from oslo.concurrency import lockutils
@@ -454,22 +452,13 @@ class LockutilsModuleTestCase(test_base.BaseTestCase):
     def setUp(self):
         super(LockutilsModuleTestCase, self).setUp()
         self.old_env = os.environ.get('OSLO_LOCK_PATH')
+        if self.old_env is not None:
+            del os.environ['OSLO_LOCK_PATH']
 
     def tearDown(self):
-        if self.old_env is None:
-            del os.environ['OSLO_LOCK_PATH']
-        else:
+        if self.old_env is not None:
             os.environ['OSLO_LOCK_PATH'] = self.old_env
         super(LockutilsModuleTestCase, self).tearDown()
-
-    def _lock_path_conf_test(self, lock_dir):
-        cfg.CONF.unregister_opts(lockutils.util_opts)
-        lockutils_ = moves.reload_module(lockutils)
-        with lockutils_.lock('test-lock', external=True):
-            if not os.path.exists(lock_dir):
-                os._exit(2)
-            if not os.path.exists(os.path.join(lock_dir, 'test-lock')):
-                os._exit(3)
 
     def test_main(self):
         script = '\n'.join([
@@ -479,8 +468,17 @@ class LockutilsModuleTestCase(test_base.BaseTestCase):
             'assert os.path.isdir(lock_path)',
         ])
         argv = ['', sys.executable, '-c', script]
-        retval = lockutils.main(argv)
+        retval = lockutils.lock_wrapper(argv)
         self.assertEqual(retval, 0, "Bad OSLO_LOCK_PATH has been set")
+
+    def test_return_value_maintained(self):
+        script = '\n'.join([
+            'import sys',
+            'sys.exit(1)',
+        ])
+        argv = ['', sys.executable, '-c', script]
+        retval = lockutils.lock_wrapper(argv)
+        self.assertEqual(retval, 1)
 
 
 class TestLockFixture(test_base.BaseTestCase):
