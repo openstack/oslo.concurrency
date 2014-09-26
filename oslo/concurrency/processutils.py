@@ -25,12 +25,22 @@ import shlex
 import signal
 import time
 
-from eventlet.green import subprocess
-from eventlet import greenthread
+from oslo.utils import importutils
 from oslo.utils import strutils
 import six
 
 from oslo.concurrency._i18n import _
+
+
+# NOTE(bnemec): eventlet doesn't monkey patch subprocess, so we need to
+# determine the proper subprocess module to use ourselves.  I'm using the
+# time module as the check because that's a monkey patched module we use
+# in combination with subprocess below, so they need to match.
+eventlet = importutils.try_import('eventlet')
+if eventlet and eventlet.patcher.is_monkey_patched(time):
+    from eventlet.green import subprocess
+else:
+    import subprocess
 
 
 LOG = logging.getLogger(__name__)
@@ -242,12 +252,16 @@ def execute(*cmd, **kwargs):
                 LOG.log(loglevel, _('%r failed. Retrying.'),
                         sanitized_cmd)
                 if delay_on_retry:
-                    greenthread.sleep(random.randint(20, 200) / 100.0)
+                    time.sleep(random.randint(20, 200) / 100.0)
         finally:
             # NOTE(termie): this appears to be necessary to let the subprocess
             #               call clean something up in between calls, without
             #               it two execute calls in a row hangs the second one
-            greenthread.sleep(0)
+            # NOTE(bnemec): termie's comment above is probably specific to the
+            #               eventlet subprocess module, but since we still
+            #               have to support that we're leaving the sleep.  It
+            #               won't hurt anything in the stdlib case anyway.
+            time.sleep(0)
 
 
 def trycmd(*args, **kwargs):
