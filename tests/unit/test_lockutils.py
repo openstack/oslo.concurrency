@@ -127,7 +127,7 @@ class LockTestCase(test_base.BaseTestCase):
         """We can nest external syncs."""
         tempdir = tempfile.mkdtemp()
         try:
-            self.config(lock_path=tempdir)
+            self.config(lock_path=tempdir, group='oslo_concurrency')
             sentinel = object()
 
             @lockutils.synchronized('testlock1', 'test-', external=True)
@@ -197,7 +197,7 @@ class LockTestCase(test_base.BaseTestCase):
 
     def test_lock_externally(self):
         lock_dir = tempfile.mkdtemp()
-        self.config(lock_path=lock_dir)
+        self.config(lock_path=lock_dir, group='oslo_concurrency')
 
         try:
             self._do_test_lock_externally()
@@ -208,7 +208,7 @@ class LockTestCase(test_base.BaseTestCase):
     def test_lock_externally_lock_dir_not_exist(self):
         lock_dir = tempfile.mkdtemp()
         os.rmdir(lock_dir)
-        self.config(lock_path=lock_dir)
+        self.config(lock_path=lock_dir, group='oslo_concurrency')
 
         try:
             self._do_test_lock_externally()
@@ -227,13 +227,13 @@ class LockTestCase(test_base.BaseTestCase):
             return True
 
         lock_dir = tempfile.mkdtemp()
-        self.config(lock_path=lock_dir)
+        self.config(lock_path=lock_dir, group='oslo_concurrency')
 
         self.assertTrue(bar(lock_dir, lock_pfix, lock_name))
 
     def test_synchronized_without_prefix(self):
         lock_dir = tempfile.mkdtemp()
-        self.config(lock_path=lock_dir)
+        self.config(lock_path=lock_dir, group='oslo_concurrency')
 
         @lockutils.synchronized('lock', external=True)
         def test_without_prefix():
@@ -248,7 +248,7 @@ class LockTestCase(test_base.BaseTestCase):
 
     def test_synchronized_prefix_without_hypen(self):
         lock_dir = tempfile.mkdtemp()
-        self.config(lock_path=lock_dir)
+        self.config(lock_path=lock_dir, group='oslo_concurrency')
 
         @lockutils.synchronized('lock', 'hypen', True)
         def test_without_hypen():
@@ -263,7 +263,7 @@ class LockTestCase(test_base.BaseTestCase):
 
     def test_contextlock(self):
         lock_dir = tempfile.mkdtemp()
-        self.config(lock_path=lock_dir)
+        self.config(lock_path=lock_dir, group='oslo_concurrency')
 
         try:
             # Note(flaper87): Lock is not external, which means
@@ -289,7 +289,7 @@ class LockTestCase(test_base.BaseTestCase):
 
     def test_contextlock_unlocks(self):
         lock_dir = tempfile.mkdtemp()
-        self.config(lock_path=lock_dir)
+        self.config(lock_path=lock_dir, group='oslo_concurrency')
 
         sem = None
 
@@ -334,7 +334,7 @@ class LockTestCase(test_base.BaseTestCase):
 
     def test_remove_lock_external_file(self):
         lock_dir = tempfile.mkdtemp()
-        self.config(lock_path=lock_dir)
+        self.config(lock_path=lock_dir, group='oslo_concurrency')
         self._test_remove_lock_external_file(lock_dir)
 
     def test_remove_lock_external_file_lock_path(self):
@@ -499,7 +499,7 @@ class TestLockFixture(test_base.BaseTestCase):
 
     def test_lock_fixture(self):
         # Setup lock fixture to test that teardown is inside the lock
-        self.config(lock_path=self.tempdir)
+        self.config(lock_path=self.tempdir, group='oslo_concurrency')
         fixture = fixtures.LockFixture('test-lock')
         self.useFixture(fixture)
         self.lock = fixture.lock

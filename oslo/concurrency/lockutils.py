@@ -35,23 +35,25 @@ from oslo.concurrency.openstack.common import fileutils
 LOG = logging.getLogger(__name__)
 
 
-util_opts = [
+_opts = [
     cfg.BoolOpt('disable_process_locking', default=False,
-                help='Enables or disables inter-process locks.'),
+                help='Enables or disables inter-process locks.',
+                deprecated_group='DEFAULT'),
     cfg.StrOpt('lock_path',
                default=os.environ.get("OSLO_LOCK_PATH"),
                help='Directory to use for lock files.  For security, the '
                     'specified directory should only be writable by the user '
-                    'running the processes that need locking.')
+                    'running the processes that need locking.',
+               deprecated_group='DEFAULT')
 ]
 
 
 CONF = cfg.CONF
-CONF.register_opts(util_opts)
+CONF.register_opts(_opts, group='oslo_concurrency')
 
 
 def set_defaults(lock_path):
-    cfg.set_defaults(util_opts, lock_path=lock_path)
+    cfg.set_defaults(_opts, lock_path=lock_path)
 
 
 class _FileLock(object):
@@ -180,7 +182,7 @@ def _get_lock_path(name, lock_file_prefix, lock_path=None):
         sep = '' if lock_file_prefix.endswith('-') else '-'
         name = '%s%s%s' % (lock_file_prefix, sep, name)
 
-    local_lock_path = lock_path or CONF.lock_path
+    local_lock_path = lock_path or CONF.oslo_concurrency.lock_path
 
     if not local_lock_path:
         raise cfg.RequiredOptError('lock_path')
@@ -243,7 +245,7 @@ def lock(name, lock_file_prefix=None, external=False, lock_path=None):
     with int_lock:
         LOG.debug('Acquired semaphore "%(lock)s"', {'lock': name})
         try:
-            if external and not CONF.disable_process_locking:
+            if external and not CONF.oslo_concurrency.disable_process_locking:
                 ext_lock = external_lock(name, lock_file_prefix, lock_path)
                 with ext_lock:
                     yield ext_lock
