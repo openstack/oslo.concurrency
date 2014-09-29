@@ -53,7 +53,6 @@ class LockTestCase(test_base.BaseTestCase):
         lock = lockutils._FcntlLock(lock_file)
 
         def try_lock():
-            lock.release()  # child co-owns it before fork
             try:
                 my_lock = lockutils._FcntlLock(lock_file)
                 my_lock.lockfile = open(lock_file, 'w')
