@@ -17,7 +17,6 @@ import shutil
 import tempfile
 
 import eventlet
-eventlet.monkey_patch()
 from eventlet import greenpool
 from oslotest import base as test_base
 
