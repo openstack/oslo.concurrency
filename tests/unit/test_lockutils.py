@@ -495,7 +495,7 @@ class LockutilsModuleTestCase(test_base.BaseTestCase):
             'assert os.path.isdir(lock_path)',
         ])
         argv = ['', sys.executable, '-c', script]
-        retval = lockutils.lock_wrapper(argv)
+        retval = lockutils._lock_wrapper(argv)
         self.assertEqual(retval, 0, "Bad OSLO_LOCK_PATH has been set")
 
     def test_return_value_maintained(self):
@@ -504,7 +504,7 @@ class LockutilsModuleTestCase(test_base.BaseTestCase):
             'sys.exit(1)',
         ])
         argv = ['', sys.executable, '-c', script]
-        retval = lockutils.lock_wrapper(argv)
+        retval = lockutils._lock_wrapper(argv)
         self.assertEqual(retval, 1)
 
 

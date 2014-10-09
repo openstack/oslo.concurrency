@@ -333,7 +333,7 @@ def synchronized_with_prefix(lock_file_prefix):
     return functools.partial(synchronized, lock_file_prefix=lock_file_prefix)
 
 
-def lock_wrapper(argv):
+def _lock_wrapper(argv):
     """Create a dir for locks and pass it to command from arguments
 
     This is exposed as a console script entry point named
@@ -357,4 +357,4 @@ def lock_wrapper(argv):
 
 
 def main():
-    sys.exit(lock_wrapper(sys.argv))
+    sys.exit(_lock_wrapper(sys.argv))
