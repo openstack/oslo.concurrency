@@ -298,6 +298,18 @@ grep foo
 
         self.assertIn('SUPER_UNIQUE_VAR=The answer is 42', out)
 
+    def test_as_root(self):
+        out, err = processutils.execute('a', 'b', 'c', run_as_root=True,
+                                        root_helper='echo')
+
+        self.assertIn('a b c', six.text_type(out))
+
+    def test_as_root_via_shell(self):
+        out, err = processutils.execute('a b c', run_as_root=True,
+                                        root_helper='echo', shell=True)
+
+        self.assertIn('a b c', six.text_type(out))
+
     def test_exception_and_masking(self):
         tmpfilename = self.create_tempfiles(
             [["test_exceptions_and_masking",
