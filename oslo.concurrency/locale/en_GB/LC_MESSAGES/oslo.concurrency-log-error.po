@@ -9,9 +9,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: oslo.concurrency\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2014-09-22 06:07+0000\n"
-"PO-Revision-Date: 2014-09-02 09:06+0000\n"
-"Last-Translator: Andi Chandler <andi@gowling.com>\n"
+"POT-Creation-Date: 2014-10-22 06:14+0000\n"
+"PO-Revision-Date: 2014-09-21 21:05+0000\n"
+"Last-Translator: openstackjenkins <jenkins@openstack.org>\n"
 "Language-Team: English (United Kingdom) (http://www.transifex.com/projects/p/"
 "osloconcurrency/language/en_GB/)\n"
 "Language: en_GB\n"
@@ -21,12 +21,12 @@ msgstr ""
 "Generated-By: Babel 1.3\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: oslo/concurrency/lockutils.py:123
+#: oslo/concurrency/lockutils.py:126
 #, python-format
 msgid "Could not unlock the acquired lock `%s`"
 msgstr ""
 
-#: oslo/concurrency/lockutils.py:129
+#: oslo/concurrency/lockutils.py:132
 #, python-format
 msgid "Could not close the acquired file handle `%s`"
 msgstr ""
