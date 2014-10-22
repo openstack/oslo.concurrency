@@ -44,7 +44,9 @@ _opts = [
                default=os.environ.get("OSLO_LOCK_PATH"),
                help='Directory to use for lock files.  For security, the '
                     'specified directory should only be writable by the user '
-                    'running the processes that need locking.',
+                    'running the processes that need locking. '
+                    'Defaults to environment variable OSLO_LOCK_PATH. '
+                    'If external locks are used, a lock path must be set.',
                deprecated_group='DEFAULT')
 ]
 
@@ -54,6 +56,10 @@ CONF.register_opts(_opts, group='oslo_concurrency')
 
 
 def set_defaults(lock_path):
+    """Set value for lock_path.
+
+    This can be used by tests to set lock_path to a temporary directory.
+    """
     cfg.set_defaults(_opts, lock_path=lock_path)
 
 
