@@ -91,6 +91,7 @@ class _FileLock(object):
         # creating a symlink to an important file in our lock_path.
         self.lockfile = open(self.fname, 'a')
 
+        start_time = time.time()
         while True:
             try:
                 # Using non-blocking locks since green threads are not
@@ -98,7 +99,9 @@ class _FileLock(object):
                 # Also upon reading the MSDN docs for locking(), it seems
                 # to have a laughable 10 attempts "blocking" mechanism.
                 self.trylock()
-                LOG.debug('Got file lock "%s"', self.fname)
+                self.acquire_time = time.time()
+                LOG.debug('Acquired file lock "%s" after waiting %0.3fs',
+                          self.fname, (self.acquire_time - start_time))
                 return True
             except IOError as e:
                 if e.errno in (errno.EACCES, errno.EAGAIN):
@@ -120,7 +123,9 @@ class _FileLock(object):
 
     def release(self):
         try:
-            LOG.debug('Releasing file lock "%s"', self.fname)
+            release_time = time.time()
+            LOG.debug('Releasing file lock "%s" after holding it for %0.3fs',
+                      self.fname, (release_time - self.acquire_time))
             self.unlock()
         except IOError:
             LOG.exception(_LE("Could not unlock the acquired lock `%s`"),
@@ -131,9 +136,6 @@ class _FileLock(object):
             except IOError:
                 LOG.exception(_LE("Could not close the acquired file handle"
                                   " `%s`"), self.fname)
-            else:
-                LOG.debug('Released and closed file lock associated with'
-                          ' "%s"', self.fname)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.release()
@@ -192,9 +194,6 @@ def _get_lock_path(name, lock_file_prefix, lock_path=None):
 
 
 def external_lock(name, lock_file_prefix=None, lock_path=None):
-    LOG.debug('Attempting to grab external lock "%(lock)s"',
-              {'lock': name})
-
     lock_file_path = _get_lock_path(name, lock_file_prefix, lock_path)
 
     return InterProcessLock(lock_file_path)
@@ -217,17 +216,16 @@ def internal_lock(name):
     with _semaphores_lock:
         try:
             sem = _semaphores[name]
-            LOG.debug('Using existing semaphore "%s"', name)
         except KeyError:
             sem = threading.Semaphore()
             _semaphores[name] = sem
-            LOG.debug('Created new semaphore "%s"', name)
 
     return sem
 
 
 @contextlib.contextmanager
-def lock(name, lock_file_prefix=None, external=False, lock_path=None):
+def lock(name, lock_file_prefix=None, external=False, lock_path=None,
+         do_log=True):
     """Context based lock
 
     This function yields a `threading.Semaphore` instance (if we don't use
@@ -241,10 +239,19 @@ def lock(name, lock_file_prefix=None, external=False, lock_path=None):
       should work across multiple processes. This means that if two different
       workers both run a method decorated with @synchronized('mylock',
       external=True), only one of them will execute at a time.
+
+    :param lock_path: The path in which to store external lock files.  For
+      external locking to work properly, this must be the same for all
+      references to the lock.
+
+    :param do_log: Whether to log acquire/release messages.  This is primarily
+      intended to reduce log message duplication when `lock` is used from the
+      `synchronized` decorator.
     """
     int_lock = internal_lock(name)
     with int_lock:
-        LOG.debug('Acquired semaphore "%(lock)s"', {'lock': name})
+        if do_log:
+            LOG.debug('Acquired semaphore "%(lock)s"', {'lock': name})
         try:
             if external and not CONF.oslo_concurrency.disable_process_locking:
                 ext_lock = external_lock(name, lock_file_prefix, lock_path)
@@ -253,7 +260,8 @@ def lock(name, lock_file_prefix=None, external=False, lock_path=None):
             else:
                 yield int_lock
         finally:
-            LOG.debug('Releasing semaphore "%(lock)s"', {'lock': name})
+            if do_log:
+                LOG.debug('Releasing semaphore "%(lock)s"', {'lock': name})
 
 
 def synchronized(name, lock_file_prefix=None, external=False, lock_path=None):
@@ -286,7 +294,8 @@ def synchronized(name, lock_file_prefix=None, external=False, lock_path=None):
             t1 = time.time()
             t2 = None
             try:
-                with lock(name, lock_file_prefix, external, lock_path):
+                with lock(name, lock_file_prefix, external, lock_path,
+                          do_log=False):
                     t2 = time.time()
                     LOG.debug('Lock "%(name)s" acquired by "%(function)s" :: '
                               'waited %(wait_secs)0.3fs',
