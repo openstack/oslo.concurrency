@@ -15,11 +15,11 @@
 
 import contextlib
 import errno
+import logging
 import os
 import tempfile
 
-from oslo.concurrency.openstack.common import excutils
-from oslo.concurrency.openstack.common import log as logging
+from oslo.utils import excutils
 
 LOG = logging.getLogger(__name__)
 
