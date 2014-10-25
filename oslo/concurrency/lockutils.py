@@ -28,6 +28,7 @@ import weakref
 
 from oslo.config import cfg
 from oslo.config import cfgfilter
+import six
 
 from oslo.concurrency._i18n import _, _LE, _LI
 from oslo.concurrency.openstack.common import fileutils
@@ -281,7 +282,7 @@ def synchronized(name, lock_file_prefix=None, external=False, lock_path=None):
     """
 
     def wrap(f):
-        @functools.wraps(f)
+        @six.wraps(f)
         def inner(*args, **kwargs):
             t1 = time.time()
             t2 = None
