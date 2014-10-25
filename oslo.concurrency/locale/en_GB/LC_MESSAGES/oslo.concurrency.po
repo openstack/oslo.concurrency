@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  oslo.concurrency\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2014-09-11 06:10+0000\n"
-"PO-Revision-Date: 2014-09-09 18:03+0000\n"
+"POT-Creation-Date: 2014-10-25 06:11+0000\n"
+"PO-Revision-Date: 2014-10-25 02:29+0000\n"
 "Last-Translator: openstackjenkins <jenkins@openstack.org>\n"
 "Language-Team: English (United Kingdom) "
 "(http://www.transifex.com/projects/p/osloconcurrency/language/en_GB/)\n"
@@ -20,17 +20,16 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 1.3\n"
 
-#: oslo/concurrency/lockutils.py:106
-#: oslo/concurrency/openstack/common/lockutils.py:101
+#: oslo/concurrency/lockutils.py:115
 #, python-format
 msgid "Unable to acquire lock on `%(filename)s` due to %(exception)s"
 msgstr "Unable to acquire lock on `%(filename)s` due to %(exception)s"
 
-#: oslo/concurrency/processutils.py:58
+#: oslo/concurrency/processutils.py:69
 msgid "Unexpected error while running command."
 msgstr "Unexpected error while running command."
 
-#: oslo/concurrency/processutils.py:61
+#: oslo/concurrency/processutils.py:72
 #, python-format
 msgid ""
 "%(description)s\n"
@@ -45,26 +44,26 @@ msgstr ""
 "Stdout: %(stdout)r\n"
 "Stderr: %(stderr)r"
 
-#: oslo/concurrency/processutils.py:160
+#: oslo/concurrency/processutils.py:171
 #, python-format
 msgid "Got unknown keyword args: %r"
 msgstr "Got unknown keyword args: %r"
 
-#: oslo/concurrency/processutils.py:163
+#: oslo/concurrency/processutils.py:174
 #, python-format
 msgid "Got invalid arg log_errors: %r"
 msgstr ""
 
-#: oslo/concurrency/processutils.py:169
+#: oslo/concurrency/processutils.py:180
 msgid "Command requested root, but did not specify a root helper."
 msgstr "Command requested root, but did not specify a root helper."
 
-#: oslo/concurrency/processutils.py:179
+#: oslo/concurrency/processutils.py:191
 #, python-format
 msgid "Running cmd (subprocess): %s"
 msgstr "Running cmd (subprocess): %s"
 
-#: oslo/concurrency/processutils.py:219
+#: oslo/concurrency/processutils.py:233
 #, python-format
 msgid ""
 "%(desc)r\n"
@@ -74,7 +73,7 @@ msgid ""
 "stderr: %(stderr)r"
 msgstr ""
 
-#: oslo/concurrency/processutils.py:228
+#: oslo/concurrency/processutils.py:242
 #, python-format
 msgid ""
 "Got an OSError\n"
@@ -82,68 +81,21 @@ msgid ""
 "errno: %(errno)r"
 msgstr ""
 
-#: oslo/concurrency/processutils.py:234
+#: oslo/concurrency/processutils.py:248
 #, python-format
 msgid "%r failed. Not Retrying."
 msgstr ""
 
-#: oslo/concurrency/processutils.py:238
+#: oslo/concurrency/processutils.py:252
 #, python-format
 msgid "%r failed. Retrying."
 msgstr "%r failed. Retrying."
 
-#: oslo/concurrency/processutils.py:281
+#: oslo/concurrency/processutils.py:299
 msgid "Environment not supported over SSH"
 msgstr "Environment not supported over SSH"
 
-#: oslo/concurrency/processutils.py:285
+#: oslo/concurrency/processutils.py:303
 msgid "process_input not supported over SSH"
 msgstr "process_input not supported over SSH"
-
-#: oslo/concurrency/openstack/common/gettextutils.py:301
-msgid "Message objects do not support addition."
-msgstr "Message objects do not support addition."
-
-#: oslo/concurrency/openstack/common/gettextutils.py:311
-msgid ""
-"Message objects do not support str() because they may contain non-ascii "
-"characters. Please use unicode() or translate() instead."
-msgstr ""
-"Message objects do not support str() because they may contain non-ascii "
-"characters. Please use unicode() or translate() instead."
-
-#: oslo/concurrency/openstack/common/log.py:287
-#, python-format
-msgid "Deprecated: %s"
-msgstr "Deprecated: %s"
-
-#: oslo/concurrency/openstack/common/log.py:396
-#, python-format
-msgid "Error loading logging config %(log_config)s: %(err_msg)s"
-msgstr "Error loading logging config %(log_config)s: %(err_msg)s"
-
-#: oslo/concurrency/openstack/common/log.py:457
-#, python-format
-msgid "syslog facility must be one of: %s"
-msgstr "syslog facility must be one of: %s"
-
-#: oslo/concurrency/openstack/common/log.py:700
-#, python-format
-msgid "Fatal call to deprecated config: %(msg)s"
-msgstr "Fatal call to deprecated config: %(msg)s"
-
-#: oslo/concurrency/openstack/common/strutils.py:114
-#, python-format
-msgid "Unrecognized value '%(val)s', acceptable values are: %(acceptable)s"
-msgstr "Unrecognised value '%(val)s', acceptable values are: %(acceptable)s"
-
-#: oslo/concurrency/openstack/common/strutils.py:219
-#, python-format
-msgid "Invalid unit system: \"%s\""
-msgstr "Invalid unit system: \"%s\""
-
-#: oslo/concurrency/openstack/common/strutils.py:228
-#, python-format
-msgid "Invalid string format: %s"
-msgstr "Invalid string format: %s"
 
