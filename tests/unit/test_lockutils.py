@@ -23,6 +23,7 @@ import tempfile
 import threading
 import time
 
+from oslo.config import cfg
 from oslotest import base as test_base
 import six
 
@@ -344,6 +345,18 @@ class LockTestCase(test_base.BaseTestCase):
         # base64(sha1(foobar)) has a slash in it
         with lockutils.lock("foobar"):
             pass
+
+    def test_deprecated_names(self):
+        paths = self.create_tempfiles([['fake.conf', '\n'.join([
+            '[DEFAULT]',
+            'lock_path=foo',
+            'disable_process_locking=True'])
+        ]])
+        conf = cfg.ConfigOpts()
+        conf(['--config-file', paths[0]])
+        conf.register_opts(lockutils._opts, 'oslo_concurrency')
+        self.assertEqual(conf.oslo_concurrency.lock_path, 'foo')
+        self.assertTrue(conf.oslo_concurrency.disable_process_locking)
 
 
 class BrokenLock(lockutils._FileLock):
