@@ -85,6 +85,7 @@ class _FileLock(object):
     def __init__(self, name):
         self.lockfile = None
         self.fname = name
+        self.acquire_time = None
 
     def acquire(self):
         basedir = os.path.dirname(self.fname)
@@ -129,11 +130,15 @@ class _FileLock(object):
         return self
 
     def release(self):
+        if self.acquire_time is None:
+            raise threading.ThreadError(_("Unable to release an unacquired"
+                                          " lock"))
         try:
             release_time = time.time()
             LOG.debug('Releasing file lock "%s" after holding it for %0.3fs',
                       self.fname, (release_time - self.acquire_time))
             self.unlock()
+            self.acquire_time = None
         except IOError:
             LOG.exception(_LE("Could not unlock the acquired lock `%s`"),
                           self.fname)
