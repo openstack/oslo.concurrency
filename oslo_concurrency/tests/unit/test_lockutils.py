@@ -12,6 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import collections
 import errno
 import fcntl
 import multiprocessing
@@ -92,6 +93,30 @@ class LockTestCase(test_base.BaseTestCase):
                 shutil.rmtree(lock_dir)
             except IOError:
                 pass
+
+    def test_lock_internally_different_collections(self):
+        s1 = lockutils.Semaphores()
+        s2 = lockutils.Semaphores()
+        trigger = threading.Event()
+        who_ran = collections.deque()
+
+        def f(name, semaphores, pull_trigger):
+            with lockutils.internal_lock('testing', semaphores=semaphores):
+                if pull_trigger:
+                    trigger.set()
+                else:
+                    trigger.wait()
+                who_ran.append(name)
+
+        threads = [
+            threading.Thread(target=f, args=(1, s1, True)),
+            threading.Thread(target=f, args=(2, s2, False)),
+        ]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+        self.assertEqual([1, 2], sorted(who_ran))
 
     def test_lock_internally(self):
         """We can lock across multiple threads."""
