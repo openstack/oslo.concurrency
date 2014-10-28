@@ -18,6 +18,7 @@ import multiprocessing
 import os
 import shutil
 import signal
+import subprocess
 import sys
 import tempfile
 import threading
@@ -519,6 +520,13 @@ class LockutilsModuleTestCase(test_base.BaseTestCase):
         argv = ['', sys.executable, '-c', script]
         retval = lockutils._lock_wrapper(argv)
         self.assertEqual(retval, 1)
+
+    def test_direct_call_explodes(self):
+        cmd = [sys.executable, '-m', 'oslo.concurrency.lockutils']
+        with open(os.devnull, 'w') as devnull:
+            retval = subprocess.call(cmd, stderr=devnull)
+            # 1 for Python 2.7 and 3.x, 255 for 2.6
+            self.assertIn(retval, [1, 255])
 
 
 class TestLockFixture(test_base.BaseTestCase):

@@ -358,10 +358,10 @@ def _lock_wrapper(argv):
     """Create a dir for locks and pass it to command from arguments
 
     This is exposed as a console script entry point named
-    oslo-concurrency-lock-wrapper
+    lockutils-wrapper
 
     If you run this:
-        oslo-concurrency-lock-wrapper python setup.py testr <etc>
+        lockutils-wrapper python setup.py testr <etc>
 
     a temporary directory will be created for all your locks and passed to all
     your tests in an environment variable. The temporary dir will be deleted
@@ -379,3 +379,9 @@ def _lock_wrapper(argv):
 
 def main():
     sys.exit(_lock_wrapper(sys.argv))
+
+
+if __name__ == '__main__':
+    raise NotImplementedError(_('Calling lockutils directly is no longer '
+                                'supported.  Please use the '
+                                'lockutils-wrapper console script instead.'))
