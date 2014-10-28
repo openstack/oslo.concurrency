@@ -549,3 +549,27 @@ class TestLockFixture(test_base.BaseTestCase):
         fixture = fixtures.LockFixture('test-lock')
         self.useFixture(fixture)
         self.lock = fixture.lock
+
+
+class TestExternalLockFixture(test_base.BaseTestCase):
+    def test_fixture(self):
+        # NOTE(bnemec): This test case is only valid if lockutils-wrapper is
+        # _not_ in use. Otherwise lock_path will be set on lockutils import
+        # and this test will pass regardless of whether the fixture is used.
+        self.useFixture(fixtures.ExternalLockFixture())
+        # This will raise an exception if lock_path is not set
+        with lockutils.external_lock('foo'):
+            pass
+
+    def test_with_existing_config_fixture(self):
+        # Make sure the config fixture in the ExternalLockFixture doesn't
+        # cause any issues for tests using their own config fixture.
+        conf = self.useFixture(config.Config())
+        self.useFixture(fixtures.ExternalLockFixture())
+        with lockutils.external_lock('bar'):
+            conf.register_opt(cfg.StrOpt('foo'))
+            conf.config(foo='bar')
+            self.assertEqual(cfg.CONF.foo, 'bar')
+            # Due to config filter, lock_path should still not be present in
+            # the global config opt.
+            self.assertFalse(hasattr(cfg.CONF, 'lock_path'))
