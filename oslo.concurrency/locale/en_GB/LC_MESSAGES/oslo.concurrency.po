@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  oslo.concurrency\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2014-10-25 06:11+0000\n"
-"PO-Revision-Date: 2014-10-25 02:29+0000\n"
+"POT-Creation-Date: 2014-10-29 06:10+0000\n"
+"PO-Revision-Date: 2014-10-28 20:48+0000\n"
 "Last-Translator: openstackjenkins <jenkins@openstack.org>\n"
 "Language-Team: English (United Kingdom) "
 "(http://www.transifex.com/projects/p/osloconcurrency/language/en_GB/)\n"
@@ -20,10 +20,20 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 1.3\n"
 
-#: oslo/concurrency/lockutils.py:115
+#: oslo/concurrency/lockutils.py:120
 #, python-format
 msgid "Unable to acquire lock on `%(filename)s` due to %(exception)s"
 msgstr "Unable to acquire lock on `%(filename)s` due to %(exception)s"
+
+#: oslo/concurrency/lockutils.py:134
+msgid "Unable to release an unacquired lock"
+msgstr ""
+
+#: oslo/concurrency/lockutils.py:385
+msgid ""
+"Calling lockutils directly is no longer supported.  Please use the "
+"lockutils-wrapper console script instead."
+msgstr ""
 
 #: oslo/concurrency/processutils.py:69
 msgid "Unexpected error while running command."
