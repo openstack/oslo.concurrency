@@ -181,7 +181,7 @@ def execute(*cmd, **kwargs):
                           'specify a root helper.'))
         cmd = shlex.split(root_helper) + list(cmd)
 
-    cmd = map(str, cmd)
+    cmd = [str(c) for c in cmd]
     sanitized_cmd = strutils.mask_password(' '.join(cmd))
 
     while attempts > 0:
