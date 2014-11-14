@@ -28,8 +28,8 @@ from oslo.config import cfg
 from oslotest import base as test_base
 import six
 
-from oslo.concurrency.fixture import lockutils as fixtures
-from oslo.concurrency import lockutils
+from oslo.concurrency.fixture import lockutils as fixtures  # noqa
+from oslo.concurrency import lockutils  # noqa
 from oslo.config import fixture as config
 
 
@@ -522,7 +522,7 @@ class LockutilsModuleTestCase(test_base.BaseTestCase):
         self.assertEqual(retval, 1)
 
     def test_direct_call_explodes(self):
-        cmd = [sys.executable, '-m', 'oslo.concurrency.lockutils']
+        cmd = [sys.executable, '-m', 'oslo_concurrency.lockutils']
         with open(os.devnull, 'w') as devnull:
             retval = subprocess.call(cmd, stderr=devnull)
             # 1 for Python 2.7 and 3.x, 255 for 2.6

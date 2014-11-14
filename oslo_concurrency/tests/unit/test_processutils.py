@@ -27,7 +27,7 @@ import mock
 from oslotest import base as test_base
 import six
 
-from oslo.concurrency import processutils
+from oslo_concurrency import processutils
 from oslotest import mockpatch
 PROCESS_EXECUTION_ERROR_LOGGING_TEST = """#!/bin/bash
 exit 41"""
@@ -396,14 +396,14 @@ def fake_execute_raises(*cmd, **kwargs):
 class TryCmdTestCase(test_base.BaseTestCase):
     def test_keep_warnings(self):
         self.useFixture(fixtures.MonkeyPatch(
-            'oslo.concurrency.processutils.execute', fake_execute))
+            'oslo_concurrency.processutils.execute', fake_execute))
         o, e = processutils.trycmd('this is a command'.split(' '))
         self.assertNotEqual('', o)
         self.assertNotEqual('', e)
 
     def test_keep_warnings_from_raise(self):
         self.useFixture(fixtures.MonkeyPatch(
-            'oslo.concurrency.processutils.execute', fake_execute_raises))
+            'oslo_concurrency.processutils.execute', fake_execute_raises))
         o, e = processutils.trycmd('this is a command'.split(' '),
                                    discard_warnings=True)
         self.assertIsNotNone(o)
@@ -411,7 +411,7 @@ class TryCmdTestCase(test_base.BaseTestCase):
 
     def test_discard_warnings(self):
         self.useFixture(fixtures.MonkeyPatch(
-            'oslo.concurrency.processutils.execute', fake_execute))
+            'oslo_concurrency.processutils.execute', fake_execute))
         o, e = processutils.trycmd('this is a command'.split(' '),
                                    discard_warnings=True)
         self.assertIsNotNone(o)

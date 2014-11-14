@@ -36,8 +36,9 @@ extensions = [
 # files.
 exclude_patterns = [
     'api/tests.*',  # avoid of docs generation from tests
-    'api/oslo.concurrency.openstack.common.*',  # skip common modules
-    'api/oslo.concurrency._*',  # skip private modules
+    'api/oslo.concurrency.*',  # skip deprecated import from namespace package
+    'api/oslo_concurrency.openstack.common.*',  # skip common modules
+    'api/oslo_concurrency._*',  # skip private modules
 ]
 
 # Prune the excluded patterns from the autoindex

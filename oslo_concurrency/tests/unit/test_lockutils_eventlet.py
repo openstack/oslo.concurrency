@@ -20,7 +20,7 @@ import eventlet
 from eventlet import greenpool
 from oslotest import base as test_base
 
-from oslo.concurrency import lockutils
+from oslo_concurrency import lockutils
 
 
 class TestFileLocks(test_base.BaseTestCase):

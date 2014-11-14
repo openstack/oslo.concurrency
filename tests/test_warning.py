@@ -10,4 +10,20 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from oslo_concurrency.fixture import lockutils  # noqa
+import imp
+
+import mock
+from oslotest import base as test_base
+
+
+class DeprecationWarningTest(test_base.BaseTestCase):
+
+    @mock.patch('warnings.warn')
+    def test_warning(self, mock_warn):
+        import oslo.concurrency
+        imp.reload(oslo.concurrency)
+        self.assertTrue(mock_warn.called)
+        args = mock_warn.call_args
+        self.assertIn('oslo_concurrency', args[0][0])
+        self.assertIn('deprecated', args[0][0])
+        self.assertTrue(issubclass(args[0][1], DeprecationWarning))

@@ -29,7 +29,7 @@ from oslo.utils import importutils
 from oslo.utils import strutils
 import six
 
-from oslo.concurrency._i18n import _
+from oslo_concurrency._i18n import _
 
 
 # NOTE(bnemec): eventlet doesn't monkey patch subprocess, so we need to
