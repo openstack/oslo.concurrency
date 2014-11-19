@@ -2,7 +2,9 @@
  oslo.concurrency
 ==================
 
-oslo.concurrency library
+Oslo concurrency library has utilities for safely running multi-thread,
+multi-process applications using locking mechanisms and for running
+external processes.
 
 * Free software: Apache license
 * Documentation: http://docs.openstack.org/developer/oslo.concurrency
