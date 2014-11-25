@@ -103,6 +103,9 @@ def _lock_retry(delay, filename,
     # raises a new or different exception the original exception will be
     # replaced with that one and raised).
     def retry_on_exception(e):
+        # TODO(harlowja): once/if https://github.com/rholder/retrying/pull/20
+        # gets merged we should just switch to using that to avoid having to
+        # catch and inspect all execeptions (and there types...)
         if isinstance(e, IOError) and e.errno in (errno.EACCES, errno.EAGAIN):
             return True
         raise threading.ThreadError(_("Unable to acquire lock on"
