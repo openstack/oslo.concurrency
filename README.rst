@@ -9,4 +9,4 @@ external processes.
 * Free software: Apache license
 * Documentation: http://docs.openstack.org/developer/oslo.concurrency
 * Source: http://git.openstack.org/cgit/openstack/oslo.concurrency
-* Bugs: http://bugs.launchpad.net/oslo
+* Bugs: http://bugs.launchpad.net/oslo.concurrency
