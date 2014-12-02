@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import collections
 import contextlib
 import errno
 import functools
@@ -490,6 +491,177 @@ def _lock_wrapper(argv):
     finally:
         shutil.rmtree(lock_dir, ignore_errors=True)
     return ret_val
+
+
+class ReaderWriterLock(object):
+    """A reader/writer lock.
+
+    This lock allows for simultaneous readers to exist but only one writer
+    to exist for use-cases where it is useful to have such types of locks.
+
+    Currently a reader can not escalate its read lock to a write lock and
+    a writer can not acquire a read lock while it owns or is waiting on
+    the write lock.
+
+    In the future these restrictions may be relaxed.
+
+    This can be eventually removed if http://bugs.python.org/issue8800 ever
+    gets accepted into the python standard threading library...
+    """
+    WRITER = b'w'
+    READER = b'r'
+
+    @staticmethod
+    def _fetch_current_thread_functor():
+        # Until https://github.com/eventlet/eventlet/issues/172 is resolved
+        # or addressed we have to use complicated workaround to get a object
+        # that will not be recycled; the usage of threading.current_thread()
+        # doesn't appear to currently be monkey patched and therefore isn't
+        # reliable to use (and breaks badly when used as all threads share
+        # the same current_thread() object)...
+        try:
+            import eventlet
+            from eventlet import patcher
+            green_threaded = patcher.is_monkey_patched('thread')
+        except ImportError:
+            green_threaded = False
+        if green_threaded:
+            return lambda: eventlet.getcurrent()
+        else:
+            return lambda: threading.current_thread()
+
+    def __init__(self):
+        self._writer = None
+        self._pending_writers = collections.deque()
+        self._readers = collections.defaultdict(int)
+        self._cond = threading.Condition()
+        self._current_thread = self._fetch_current_thread_functor()
+
+    def _has_pending_writers(self):
+        """Returns if there are writers waiting to become the *one* writer.
+
+        Internal usage only.
+
+        :return: whether there are any pending writers
+        :rtype: boolean
+        """
+        return bool(self._pending_writers)
+
+    def _is_writer(self, check_pending=True):
+        """Returns if the caller is the active writer or a pending writer.
+
+        Internal usage only.
+
+        :param check_pending: checks the pending writes as well, if false then
+                              only the current writer is checked (and not those
+                              writers that may be in line).
+
+        :return: whether the current thread is a active/pending writer
+        :rtype: boolean
+        """
+        me = self._current_thread()
+        with self._cond:
+            if self._writer is not None and self._writer == me:
+                return True
+            if check_pending:
+                return me in self._pending_writers
+            else:
+                return False
+
+    @property
+    def owner_type(self):
+        """Returns whether the lock is locked by a writer/reader/nobody.
+
+        :return: constant defining what the active owners type is
+        :rtype: WRITER/READER/None
+        """
+        with self._cond:
+            if self._writer is not None:
+                return self.WRITER
+            if self._readers:
+                return self.READER
+            return None
+
+    def _is_reader(self):
+        """Returns if the caller is one of the readers.
+
+        Internal usage only.
+
+        :return: whether the current thread is a active/pending reader
+        :rtype: boolean
+        """
+        me = self._current_thread()
+        with self._cond:
+            return me in self._readers
+
+    @contextlib.contextmanager
+    def read_lock(self):
+        """Context manager that grants a read lock.
+
+        Will wait until no active or pending writers.
+
+        Raises a ``RuntimeError`` if an active or pending writer tries to
+        acquire a read lock as this is disallowed.
+        """
+        me = self._current_thread()
+        if self._is_writer():
+            raise RuntimeError("Writer %s can not acquire a read lock"
+                               " while holding/waiting for the write lock"
+                               % me)
+        with self._cond:
+            while self._writer is not None:
+                # An active writer; guess we have to wait.
+                self._cond.wait()
+            # No active writer; we are good to become a reader.
+            self._readers[me] += 1
+        try:
+            yield self
+        finally:
+            # I am no longer a reader, remove *one* occurrence of myself.
+            # If the current thread acquired two read locks, then it will
+            # still have to remove that other read lock; this allows for
+            # basic reentrancy to be possible.
+            with self._cond:
+                claims = self._readers[me]
+                if claims == 1:
+                    self._readers.pop(me)
+                else:
+                    self._readers[me] = claims - 1
+                if not self._readers:
+                    self._cond.notify_all()
+
+    @contextlib.contextmanager
+    def write_lock(self):
+        """Context manager that grants a write lock.
+
+        Will wait until no active readers. Blocks readers after acquiring.
+
+        Raises a ``RuntimeError`` if an active reader attempts to acquire a
+        writer lock as this is disallowed.
+        """
+        me = self._current_thread()
+        if self._is_reader():
+            raise RuntimeError("Reader %s to writer privilege"
+                               " escalation not allowed" % me)
+        if self._is_writer(check_pending=False):
+            # Already the writer; this allows for basic reentrancy.
+            yield self
+        else:
+            with self._cond:
+                # Add ourself to the pending writes and wait until we are
+                # the one writer that can run (aka, when we are the first
+                # element in the pending writers).
+                self._pending_writers.append(me)
+                while (self._readers or self._writer is not None
+                       or self._pending_writers[0] != me):
+                    self._cond.wait()
+                self._writer = self._pending_writers.popleft()
+            try:
+                yield self
+            finally:
+                with self._cond:
+                    self._writer = None
+                    self._cond.notify_all()
 
 
 def main():
