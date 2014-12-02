@@ -28,8 +28,8 @@ from oslo.config import cfg
 from oslotest import base as test_base
 import six
 
-from oslo.concurrency.fixture import lockutils as fixtures  # noqa
-from oslo.concurrency import lockutils  # noqa
+from oslo.concurrency.fixture import lockutils as fixtures
+from oslo.concurrency import lockutils
 from oslo.config import fixture as config
 
 

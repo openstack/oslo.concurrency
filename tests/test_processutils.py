@@ -28,7 +28,7 @@ from oslotest import base as test_base
 from oslotest import mockpatch
 import six
 
-from oslo.concurrency import processutils  # noqa
+from oslo.concurrency import processutils
 
 PROCESS_EXECUTION_ERROR_LOGGING_TEST = """#!/bin/bash
 exit 41"""
