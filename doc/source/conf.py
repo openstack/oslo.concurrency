@@ -34,23 +34,7 @@ extensions = [
 
 # A list of glob-style patterns that should be excluded when looking for source
 # files.
-exclude_patterns = [
-    'api/tests.*',  # avoid of docs generation from tests
-    'api/oslo.concurrency.*',  # skip deprecated import from namespace package
-    'api/oslo_concurrency.openstack.common.*',  # skip common modules
-    'api/oslo_concurrency._*',  # skip private modules
-]
-
-# Prune the excluded patterns from the autoindex
-PATH = 'api/autoindex.rst'
-if os.path.isfile(PATH) and os.access(PATH, os.R_OK):
-    for line in fileinput.input(PATH, inplace=True):
-        found = False
-        for pattern in exclude_patterns:
-            if fnmatch.fnmatch(line, '*' + pattern[4:]):
-                found = True
-        if not found:
-            print line,
+exclude_patterns = []
 
 # The suffix of source filenames.
 source_suffix = '.rst'
