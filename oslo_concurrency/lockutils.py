@@ -27,7 +27,6 @@ import time
 import weakref
 
 from oslo.config import cfg
-from oslo.config import cfgfilter
 import retrying
 import six
 
@@ -53,7 +52,7 @@ _opts = [
 ]
 
 
-CONF = cfgfilter.ConfigFilter(cfg.CONF)
+CONF = cfg.CONF
 CONF.register_opts(_opts, group='oslo_concurrency')
 
 
