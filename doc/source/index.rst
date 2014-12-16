@@ -3,13 +3,12 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to oslo.concurrency's documentation!
-===============================================================
-
-Contents:
+==================
+ oslo.concurrency
+==================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    readme
    installation
@@ -17,13 +16,13 @@ Contents:
    contributing
    history
 
-Code Documentation
-==================
+API Documentation
+=================
 
 .. toctree::
    :maxdepth: 1
 
-   api/autoindex
+   api/index
 
 Indices and tables
 ==================
