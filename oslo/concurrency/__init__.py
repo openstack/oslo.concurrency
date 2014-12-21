@@ -22,7 +22,7 @@ def deprecated():
         ('The oslo namespace package is deprecated. Please use %s instead.' %
          new_name),
         DeprecationWarning,
-        stacklevel=1,
+        stacklevel=3,
     )
 
 
