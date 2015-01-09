@@ -5,3 +5,4 @@
    lockutils
    opts
    processutils
+   watchdog
