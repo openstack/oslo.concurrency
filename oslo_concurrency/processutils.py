@@ -223,6 +223,13 @@ def execute(*cmd, **kwargs):
             end_time = time.time() - start_time
             LOG.log(loglevel, 'CMD "%s" returned: %s in %0.3fs' %
                     (sanitized_cmd, _returncode, end_time))
+            if result is not None and six.PY3:
+                (stdout, stderr) = result
+                # Decode from the locale using using the surrogateescape error
+                # handler (decoding cannot fail)
+                stdout = os.fsdecode(stdout)
+                stderr = os.fsdecode(stderr)
+                result = (stdout, stderr)
             if not ignore_exit_code and _returncode not in check_exit_code:
                 (stdout, stderr) = result
                 sanitized_stdout = strutils.mask_password(stdout)
@@ -317,24 +324,30 @@ def ssh_execute(ssh, cmd, process_input=None,
     # NOTE(justinsb): This seems suspicious...
     # ...other SSH clients have buffering issues with this approach
     stdout = stdout_stream.read()
-    sanitized_stdout = strutils.mask_password(stdout)
     stderr = stderr_stream.read()
-    sanitized_stderr = strutils.mask_password(stderr)
 
     stdin_stream.close()
 
     exit_status = channel.recv_exit_status()
+
+    if six.PY3:
+        # Decode from the locale using using the surrogateescape error handler
+        # (decoding cannot fail)
+        stdout = os.fsdecode(stdout)
+        stderr = os.fsdecode(stderr)
+    stdout = strutils.mask_password(stdout)
+    stderr = strutils.mask_password(stderr)
 
     # exit_status == -1 if no exit code was returned
     if exit_status != -1:
         LOG.debug('Result was %s' % exit_status)
         if check_exit_code and exit_status != 0:
             raise ProcessExecutionError(exit_code=exit_status,
-                                        stdout=sanitized_stdout,
-                                        stderr=sanitized_stderr,
+                                        stdout=stdout,
+                                        stderr=stderr,
                                         cmd=sanitized_cmd)
 
-    return (sanitized_stdout, sanitized_stderr)
+    return (stdout, stderr)
 
 
 def get_worker_count():

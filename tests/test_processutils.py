@@ -295,8 +295,10 @@ grep foo
         env_vars = {'SUPER_UNIQUE_VAR': 'The answer is 42'}
 
         out, err = processutils.execute('/usr/bin/env', env_variables=env_vars)
+        self.assertEqual(type(out), str)
+        self.assertEqual(type(err), str)
 
-        self.assertIn(b'SUPER_UNIQUE_VAR=The answer is 42', out)
+        self.assertIn('SUPER_UNIQUE_VAR=The answer is 42', out)
 
     def test_as_root(self):
         # For the following two tests: processutils.execute() does not
@@ -330,6 +332,8 @@ grep foo
                                 'something')
 
         self.assertEqual(38, err.exit_code)
+        self.assertEqual(type(err.stdout), six.text_type)
+        self.assertEqual(type(err.stderr), six.text_type)
         self.assertIn('onstdout --password="***"', err.stdout)
         self.assertIn('onstderr --password="***"', err.stderr)
         self.assertEqual(err.cmd, ' '.join([tmpfilename,
@@ -442,7 +446,7 @@ class FakeSshChannel(object):
         return self.rc
 
 
-class FakeSshStream(six.StringIO):
+class FakeSshStream(six.BytesIO):
     def setup_channel(self, rc):
         self.channel = FakeSshChannel(rc)
 
@@ -452,11 +456,11 @@ class FakeSshConnection(object):
         self.rc = rc
 
     def exec_command(self, cmd):
-        stdout = FakeSshStream('stdout')
+        stdout = FakeSshStream(b'stdout')
         stdout.setup_channel(self.rc)
-        return (six.StringIO(),
+        return (six.BytesIO(),
                 stdout,
-                six.StringIO('stderr'))
+                six.BytesIO(b'stderr'))
 
 
 class SshExecuteTestCase(test_base.BaseTestCase):
@@ -474,6 +478,8 @@ class SshExecuteTestCase(test_base.BaseTestCase):
         o, e = processutils.ssh_execute(FakeSshConnection(0), 'ls')
         self.assertEqual('stdout', o)
         self.assertEqual('stderr', e)
+        self.assertEqual(type(o), six.text_type)
+        self.assertEqual(type(e), six.text_type)
 
     def test_fails(self):
         self.assertRaises(processutils.ProcessExecutionError,
@@ -481,13 +487,13 @@ class SshExecuteTestCase(test_base.BaseTestCase):
 
     def _test_compromising_ssh(self, rc, check):
         fixture = self.useFixture(fixtures.FakeLogger(level=logging.DEBUG))
-        fake_stdin = six.StringIO()
+        fake_stdin = six.BytesIO()
 
         fake_stdout = mock.Mock()
         fake_stdout.channel.recv_exit_status.return_value = rc
-        fake_stdout.read.return_value = 'password="secret"'
+        fake_stdout.read.return_value = b'password="secret"'
 
-        fake_stderr = six.StringIO('password="foobar"')
+        fake_stderr = six.BytesIO(b'password="foobar"')
 
         command = 'ls --password="bar"'
 
