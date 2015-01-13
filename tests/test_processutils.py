@@ -296,7 +296,7 @@ grep foo
 
         out, err = processutils.execute('/usr/bin/env', env_variables=env_vars)
 
-        self.assertIn('SUPER_UNIQUE_VAR=The answer is 42', out)
+        self.assertIn(b'SUPER_UNIQUE_VAR=The answer is 42', out)
 
     def test_exception_and_masking(self):
         tmpfilename = self.create_tempfiles(
@@ -427,7 +427,7 @@ class FakeSshChannel(object):
         return self.rc
 
 
-class FakeSshStream(six.BytesIO):
+class FakeSshStream(six.StringIO):
     def setup_channel(self, rc):
         self.channel = FakeSshChannel(rc)
 
@@ -437,11 +437,11 @@ class FakeSshConnection(object):
         self.rc = rc
 
     def exec_command(self, cmd):
-        stdout = FakeSshStream(b'stdout')
+        stdout = FakeSshStream('stdout')
         stdout.setup_channel(self.rc)
-        return (six.BytesIO(),
+        return (six.StringIO(),
                 stdout,
-                six.BytesIO(b'stderr'))
+                six.StringIO('stderr'))
 
 
 class SshExecuteTestCase(test_base.BaseTestCase):
@@ -466,13 +466,13 @@ class SshExecuteTestCase(test_base.BaseTestCase):
 
     def _test_compromising_ssh(self, rc, check):
         fixture = self.useFixture(fixtures.FakeLogger(level=logging.DEBUG))
-        fake_stdin = six.BytesIO()
+        fake_stdin = six.StringIO()
 
         fake_stdout = mock.Mock()
         fake_stdout.channel.recv_exit_status.return_value = rc
-        fake_stdout.read.return_value = b'password="secret"'
+        fake_stdout.read.return_value = 'password="secret"'
 
-        fake_stderr = six.BytesIO(b'password="foobar"')
+        fake_stderr = six.StringIO('password="foobar"')
 
         command = 'ls --password="bar"'
 
