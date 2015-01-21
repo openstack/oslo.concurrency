@@ -25,15 +25,15 @@ import tempfile
 import threading
 import time
 
-from oslo.config import cfg
+from oslo_config import cfg
 from oslotest import base as test_base
 import six
 
 from concurrent import futures
 
-from oslo.config import fixture as config
 from oslo_concurrency.fixture import lockutils as fixtures
 from oslo_concurrency import lockutils
+from oslo_config import fixture as config
 
 
 class LockTestCase(test_base.BaseTestCase):

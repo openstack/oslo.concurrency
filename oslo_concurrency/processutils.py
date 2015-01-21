@@ -25,8 +25,8 @@ import shlex
 import signal
 import time
 
-from oslo.utils import importutils
-from oslo.utils import strutils
+from oslo_utils import importutils
+from oslo_utils import strutils
 import six
 
 from oslo_concurrency._i18n import _

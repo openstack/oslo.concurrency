@@ -14,7 +14,7 @@
 #    under the License.
 
 import fixtures
-from oslo.config import fixture as config
+from oslo_config import fixture as config
 
 from oslo_concurrency import lockutils
 

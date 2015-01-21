@@ -27,7 +27,7 @@ import threading
 import time
 import weakref
 
-from oslo.config import cfg
+from oslo_config import cfg
 import retrying
 import six
 
