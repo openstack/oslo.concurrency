@@ -103,6 +103,8 @@ def execute(*cmd, **kwargs):
 
     :param cmd:             Passed to subprocess.Popen.
     :type cmd:              string
+    :param cwd:             Set the current working directory
+    :type cwd:              string
     :param process_input:   Send to opened process.
     :type process_input:    string
     :param env_variables:   Environment variables and their values that
@@ -149,6 +151,7 @@ def execute(*cmd, **kwargs):
     :raises:                :class:`OSError`
     """
 
+    cwd = kwargs.pop('cwd', None)
     process_input = kwargs.pop('process_input', None)
     env_variables = kwargs.pop('env_variables', None)
     check_exit_code = kwargs.pop('check_exit_code', [0])
@@ -205,6 +208,7 @@ def execute(*cmd, **kwargs):
                                    close_fds=close_fds,
                                    preexec_fn=preexec_fn,
                                    shell=shell,
+                                   cwd=cwd,
                                    env=env_variables)
 
             result = obj.communicate(process_input)

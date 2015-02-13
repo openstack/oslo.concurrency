@@ -168,6 +168,13 @@ exit 1
                           processutils.execute,
                           '/usr/bin/env', 'false', check_exit_code=True)
 
+    def test_check_cwd(self):
+        tmpdir = tempfile.mkdtemp()
+        out, err = processutils.execute('/usr/bin/env',
+                                        'sh', '-c', 'pwd',
+                                        cwd=tmpdir)
+        self.assertIn(six.b(tmpdir), out)
+
     def test_check_exit_code_list(self):
         processutils.execute('/usr/bin/env', 'sh', '-c', 'exit 101',
                              check_exit_code=(101, 102))
