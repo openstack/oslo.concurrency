@@ -898,3 +898,20 @@ class TestLockFixture(test_base.BaseTestCase):
         fixture = fixtures.LockFixture('test-lock')
         self.useFixture(fixture)
         self.lock = fixture.lock
+
+
+class TestGetLockPath(test_base.BaseTestCase):
+
+    def setUp(self):
+        super(TestGetLockPath, self).setUp()
+        self.conf = self.useFixture(config.Config(lockutils.CONF)).conf
+
+    def test_get_default(self):
+        lockutils.set_defaults(lock_path='/the/path')
+        self.assertEqual('/the/path', lockutils.get_lock_path(self.conf))
+
+    def test_get_override(self):
+        lockutils._register_opts(self.conf)
+        self.conf.set_override('lock_path', '/alternate/path',
+                               group='oslo_concurrency')
+        self.assertEqual('/alternate/path', lockutils.get_lock_path(self.conf))

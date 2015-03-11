@@ -53,8 +53,12 @@ _opts = [
 ]
 
 
+def _register_opts(conf):
+    conf.register_opts(_opts, group='oslo_concurrency')
+
+
 CONF = cfg.CONF
-CONF.register_opts(_opts, group='oslo_concurrency')
+_register_opts(CONF)
 
 
 def set_defaults(lock_path):
@@ -63,6 +67,16 @@ def set_defaults(lock_path):
     This can be used by tests to set lock_path to a temporary directory.
     """
     cfg.set_defaults(_opts, lock_path=lock_path)
+
+
+def get_lock_path(conf):
+    """Return the path used for external file-based locks.
+
+    :param conf: Configuration object
+    :type conf: oslo_config.cfg.ConfigOpts
+    """
+    _register_opts(conf)
+    return conf.oslo_concurrency.lock_path
 
 
 class _Hourglass(object):
