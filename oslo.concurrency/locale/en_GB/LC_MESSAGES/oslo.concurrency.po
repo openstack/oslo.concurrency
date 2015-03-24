@@ -1,17 +1,17 @@
 # English (United Kingdom) translations for oslo.concurrency.
-# Copyright (C) 2014 ORGANIZATION
+# Copyright (C) 2015 ORGANIZATION
 # This file is distributed under the same license as the oslo.concurrency
 # project.
 #
 # Translators:
-# Andi Chandler <andi@gowling.com>, 2014
+# Andi Chandler <andi@gowling.com>, 2014-2015
 msgid ""
 msgstr ""
 "Project-Id-Version:  oslo.concurrency\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2014-10-29 06:10+0000\n"
-"PO-Revision-Date: 2014-10-28 20:48+0000\n"
-"Last-Translator: openstackjenkins <jenkins@openstack.org>\n"
+"POT-Creation-Date: 2015-03-24 06:04+0000\n"
+"PO-Revision-Date: 2015-03-24 01:19+0000\n"
+"Last-Translator: Andi Chandler <andi@gowling.com>\n"
 "Language-Team: English (United Kingdom) "
 "(http://www.transifex.com/projects/p/osloconcurrency/language/en_GB/)\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
@@ -20,26 +20,28 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 1.3\n"
 
-#: oslo/concurrency/lockutils.py:120
+#: oslo_concurrency/lockutils.py:125
 #, python-format
 msgid "Unable to acquire lock on `%(filename)s` due to %(exception)s"
 msgstr "Unable to acquire lock on `%(filename)s` due to %(exception)s"
 
-#: oslo/concurrency/lockutils.py:134
+#: oslo_concurrency/lockutils.py:222
 msgid "Unable to release an unacquired lock"
-msgstr ""
+msgstr "Unable to release an unacquired lock"
 
-#: oslo/concurrency/lockutils.py:385
+#: oslo_concurrency/lockutils.py:685
 msgid ""
 "Calling lockutils directly is no longer supported.  Please use the "
 "lockutils-wrapper console script instead."
 msgstr ""
+"Calling lockutils directly is no longer supported.  Please use the "
+"lockutils-wrapper console script instead."
 
-#: oslo/concurrency/processutils.py:69
+#: oslo_concurrency/processutils.py:69
 msgid "Unexpected error while running command."
 msgstr "Unexpected error while running command."
 
-#: oslo/concurrency/processutils.py:72
+#: oslo_concurrency/processutils.py:72
 #, python-format
 msgid ""
 "%(description)s\n"
@@ -54,26 +56,26 @@ msgstr ""
 "Stdout: %(stdout)r\n"
 "Stderr: %(stderr)r"
 
-#: oslo/concurrency/processutils.py:171
+#: oslo_concurrency/processutils.py:174
 #, python-format
 msgid "Got unknown keyword args: %r"
 msgstr "Got unknown keyword args: %r"
 
-#: oslo/concurrency/processutils.py:174
+#: oslo_concurrency/processutils.py:177
 #, python-format
 msgid "Got invalid arg log_errors: %r"
-msgstr ""
+msgstr "Got invalid arg log_errors: %r"
 
-#: oslo/concurrency/processutils.py:180
+#: oslo_concurrency/processutils.py:183
 msgid "Command requested root, but did not specify a root helper."
 msgstr "Command requested root, but did not specify a root helper."
 
-#: oslo/concurrency/processutils.py:191
+#: oslo_concurrency/processutils.py:199
 #, python-format
 msgid "Running cmd (subprocess): %s"
 msgstr "Running cmd (subprocess): %s"
 
-#: oslo/concurrency/processutils.py:233
+#: oslo_concurrency/processutils.py:242
 #, python-format
 msgid ""
 "%(desc)r\n"
@@ -82,30 +84,38 @@ msgid ""
 "stdout: %(stdout)r\n"
 "stderr: %(stderr)r"
 msgstr ""
+"%(desc)r\n"
+"command: %(cmd)r\n"
+"exit code: %(code)r\n"
+"stdout: %(stdout)r\n"
+"stderr: %(stderr)r"
 
-#: oslo/concurrency/processutils.py:242
+#: oslo_concurrency/processutils.py:251
 #, python-format
 msgid ""
 "Got an OSError\n"
 "command: %(cmd)r\n"
 "errno: %(errno)r"
 msgstr ""
+"Got an OSError\n"
+"command: %(cmd)r\n"
+"errno: %(errno)r"
 
-#: oslo/concurrency/processutils.py:248
+#: oslo_concurrency/processutils.py:257
 #, python-format
 msgid "%r failed. Not Retrying."
-msgstr ""
+msgstr "%r failed. Not Retrying."
 
-#: oslo/concurrency/processutils.py:252
+#: oslo_concurrency/processutils.py:261
 #, python-format
 msgid "%r failed. Retrying."
 msgstr "%r failed. Retrying."
 
-#: oslo/concurrency/processutils.py:299
+#: oslo_concurrency/processutils.py:308
 msgid "Environment not supported over SSH"
 msgstr "Environment not supported over SSH"
 
-#: oslo/concurrency/processutils.py:303
+#: oslo_concurrency/processutils.py:312
 msgid "process_input not supported over SSH"
 msgstr "process_input not supported over SSH"
 
