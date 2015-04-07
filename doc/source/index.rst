@@ -1,16 +1,14 @@
-.. oslo.concurrency documentation master file, created by
-   sphinx-quickstart on Tue Jul  9 22:26:36 2013.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+============================================
+Welcome to oslo.concurrency's documentation!
+============================================
 
-==================
- oslo.concurrency
-==================
+The `oslo`_ concurrency library has utilities for safely running multi-thread,
+multi-process applications using locking mechanisms and for running
+external processes.
 
 .. toctree::
    :maxdepth: 1
 
-   readme
    installation
    usage
    contributing
@@ -30,3 +28,5 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+.. _oslo: https://wiki.openstack.org/wiki/Oslo
