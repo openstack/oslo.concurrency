@@ -299,13 +299,16 @@ grep foo
         self.assertIn(b'SUPER_UNIQUE_VAR=The answer is 42', out)
 
     def test_as_root(self):
-        out, err = processutils.execute('a', 'b', 'c', run_as_root=True,
-                                        root_helper='echo')
+        # For the following two tests: processutils.execute() does not
+        # prepend the root_helper if we are already running with root privs,
+        # so add it as the first argument to be certain.
+        out, err = processutils.execute('echo', 'a', 'b', 'c',
+                                        run_as_root=True, root_helper='echo')
 
         self.assertIn('a b c', six.text_type(out))
 
     def test_as_root_via_shell(self):
-        out, err = processutils.execute('a b c', run_as_root=True,
+        out, err = processutils.execute('echo a b c', run_as_root=True,
                                         root_helper='echo', shell=True)
 
         self.assertIn('a b c', six.text_type(out))
