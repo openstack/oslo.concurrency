@@ -312,6 +312,17 @@ grep foo
 
         self.assertIn('SUPER_UNIQUE_VAR=The answer is 42', out)
 
+    def test_binary(self):
+        env_vars = {'SUPER_UNIQUE_VAR': 'The answer is 42'}
+
+        out, err = processutils.execute('/usr/bin/env',
+                                        env_variables=env_vars,
+                                        binary=True)
+        self.assertIsInstance(out, bytes)
+        self.assertIsInstance(err, bytes)
+
+        self.assertIn(b'SUPER_UNIQUE_VAR=The answer is 42', out)
+
     def test_exception_and_masking(self):
         tmpfilename = self.create_tempfiles(
             [["test_exceptions_and_masking",
@@ -338,7 +349,8 @@ grep foo
                                             'something']))
         self.assertNotIn('secret', str(err))
 
-    def check_undecodable_bytes(self, out_bytes, err_bytes, exitcode=0):
+    def execute_undecodable_bytes(self, out_bytes, err_bytes,
+                                  exitcode=0, binary=False):
         if six.PY3:
             code = ';'.join(('import sys',
                              'sys.stdout.buffer.write(%a)' % out_bytes,
@@ -354,36 +366,54 @@ grep foo
                              'sys.stderr.flush()',
                              'sys.exit(%s)' % exitcode))
 
-        return processutils.execute(sys.executable, '-c', code)
+        return processutils.execute(sys.executable, '-c', code, binary=binary)
 
-    def test_undecodable_bytes(self):
+    def check_undecodable_bytes(self, binary):
         out_bytes = b'out: ' + UNDECODABLE_BYTES
         err_bytes = b'err: ' + UNDECODABLE_BYTES
-        out, err = self.check_undecodable_bytes(out_bytes, err_bytes)
-        if six.PY3:
+        out, err = self.execute_undecodable_bytes(out_bytes, err_bytes,
+                                                  binary=binary)
+        if six.PY3 and not binary:
             self.assertEqual(out, os.fsdecode(out_bytes))
             self.assertEqual(err, os.fsdecode(err_bytes))
         else:
             self.assertEqual(out, out_bytes)
             self.assertEqual(err, err_bytes)
 
-    def test_undecodable_bytes_error(self):
+    def test_undecodable_bytes(self):
+        self.check_undecodable_bytes(False)
+
+    def test_binary_undecodable_bytes(self):
+        self.check_undecodable_bytes(True)
+
+    def check_undecodable_bytes_error(self, binary):
         out_bytes = b'out: password="secret1" ' + UNDECODABLE_BYTES
         err_bytes = b'err: password="secret2" ' + UNDECODABLE_BYTES
         exc = self.assertRaises(processutils.ProcessExecutionError,
-                                self.check_undecodable_bytes,
-                                out_bytes, err_bytes, exitcode=1)
+                                self.execute_undecodable_bytes,
+                                out_bytes, err_bytes, exitcode=1,
+                                binary=binary)
 
         out = exc.stdout
         err = exc.stderr
         out_bytes = b'out: password="***" ' + UNDECODABLE_BYTES
         err_bytes = b'err: password="***" ' + UNDECODABLE_BYTES
         if six.PY3:
+            # On Python 3, stdout and stderr attributes of
+            # ProcessExecutionError must always be Unicode
             self.assertEqual(out, os.fsdecode(out_bytes))
             self.assertEqual(err, os.fsdecode(err_bytes))
         else:
+            # On Python 2, stdout and stderr attributes of
+            # ProcessExecutionError must always be bytes
             self.assertEqual(out, out_bytes)
             self.assertEqual(err, err_bytes)
+
+    def test_undecodable_bytes_error(self):
+        self.check_undecodable_bytes_error(False)
+
+    def test_binary_undecodable_bytes_error(self):
+        self.check_undecodable_bytes_error(True)
 
 
 class ProcessExecutionErrorLoggingTest(test_base.BaseTestCase):
@@ -527,39 +557,64 @@ class SshExecuteTestCase(test_base.BaseTestCase):
         self.assertIsInstance(out, six.text_type)
         self.assertIsInstance(err, six.text_type)
 
-    def test_undecodable_bytes(self):
+    def test_binary(self):
+        o, e = processutils.ssh_execute(FakeSshConnection(0), 'ls',
+                                        binary=True)
+        self.assertEqual(b'stdout', o)
+        self.assertEqual(b'stderr', e)
+        self.assertIsInstance(o, bytes)
+        self.assertIsInstance(e, bytes)
+
+    def check_undecodable_bytes(self, binary):
         out_bytes = b'out: ' + UNDECODABLE_BYTES
         err_bytes = b'err: ' + UNDECODABLE_BYTES
         conn = FakeSshConnection(0, out=out_bytes, err=err_bytes)
 
-        out, err = processutils.ssh_execute(conn, 'ls')
-        if six.PY3:
+        out, err = processutils.ssh_execute(conn, 'ls', binary=binary)
+        if six.PY3 and not binary:
             self.assertEqual(out, os.fsdecode(out_bytes))
             self.assertEqual(err, os.fsdecode(err_bytes))
         else:
             self.assertEqual(out, out_bytes)
             self.assertEqual(err, err_bytes)
 
-    def test_undecodable_bytes_error(self):
+    def test_undecodable_bytes(self):
+        self.check_undecodable_bytes(False)
+
+    def test_binary_undecodable_bytes(self):
+        self.check_undecodable_bytes(True)
+
+    def check_undecodable_bytes_error(self, binary):
         out_bytes = b'out: password="secret1" ' + UNDECODABLE_BYTES
         err_bytes = b'err: password="secret2" ' + UNDECODABLE_BYTES
         conn = FakeSshConnection(1, out=out_bytes, err=err_bytes)
 
+        out_bytes = b'out: password="***" ' + UNDECODABLE_BYTES
+        err_bytes = b'err: password="***" ' + UNDECODABLE_BYTES
+
         exc = self.assertRaises(processutils.ProcessExecutionError,
                                 processutils.ssh_execute,
                                 conn, 'ls',
-                                check_exit_code=True)
+                                binary=binary, check_exit_code=True)
 
         out = exc.stdout
         err = exc.stderr
-        out_bytes = b'out: password="***" ' + UNDECODABLE_BYTES
-        err_bytes = b'err: password="***" ' + UNDECODABLE_BYTES
         if six.PY3:
+            # On Python 3, stdout and stderr attributes of
+            # ProcessExecutionError must always be Unicode
             self.assertEqual(out, os.fsdecode(out_bytes))
             self.assertEqual(err, os.fsdecode(err_bytes))
         else:
+            # On Python 2, stdout and stderr attributes of
+            # ProcessExecutionError must always be bytes
             self.assertEqual(out, out_bytes)
             self.assertEqual(err, err_bytes)
+
+    def test_undecodable_bytes_error(self):
+        self.check_undecodable_bytes_error(False)
+
+    def test_binary_undecodable_bytes_error(self):
+        self.check_undecodable_bytes_error(True)
 
     def test_fails(self):
         self.assertRaises(processutils.ProcessExecutionError,

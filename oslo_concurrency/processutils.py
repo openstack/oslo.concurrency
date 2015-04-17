@@ -144,6 +144,9 @@ def execute(*cmd, **kwargs):
                             last attempt, and LOG_ALL_ERRORS requires
                             logging on each occurence of an error.
     :type log_errors:       integer.
+    :param binary:          On Python 3, return stdout and stderr as bytes if
+                            binary is True, as Unicode otherwise.
+    :type binary:           boolean
     :returns:               (stdout, stderr) from process execution
     :raises:                :class:`UnknownArgumentError` on
                             receiving unknown arguments
@@ -163,6 +166,7 @@ def execute(*cmd, **kwargs):
     shell = kwargs.pop('shell', False)
     loglevel = kwargs.pop('loglevel', logging.DEBUG)
     log_errors = kwargs.pop('log_errors', None)
+    binary = kwargs.pop('binary', False)
 
     if isinstance(check_exit_code, bool):
         ignore_exit_code = not check_exit_code
@@ -223,22 +227,26 @@ def execute(*cmd, **kwargs):
             end_time = time.time() - start_time
             LOG.log(loglevel, 'CMD "%s" returned: %s in %0.3fs' %
                     (sanitized_cmd, _returncode, end_time))
-            if result is not None and six.PY3:
-                (stdout, stderr) = result
-                # Decode from the locale using using the surrogateescape error
-                # handler (decoding cannot fail)
-                stdout = os.fsdecode(stdout)
-                stderr = os.fsdecode(stderr)
-                result = (stdout, stderr)
             if not ignore_exit_code and _returncode not in check_exit_code:
                 (stdout, stderr) = result
+                if six.PY3:
+                    stdout = os.fsdecode(stdout)
+                    stderr = os.fsdecode(stderr)
                 sanitized_stdout = strutils.mask_password(stdout)
                 sanitized_stderr = strutils.mask_password(stderr)
                 raise ProcessExecutionError(exit_code=_returncode,
                                             stdout=sanitized_stdout,
                                             stderr=sanitized_stderr,
                                             cmd=sanitized_cmd)
-            return result
+            if six.PY3 and not binary and result is not None:
+                (stdout, stderr) = result
+                # Decode from the locale using using the surrogateescape error
+                # handler (decoding cannot fail)
+                stdout = os.fsdecode(stdout)
+                stderr = os.fsdecode(stderr)
+                return (stdout, stderr)
+            else:
+                return result
 
         except (ProcessExecutionError, OSError) as err:
             # if we want to always log the errors or if this is
@@ -308,7 +316,8 @@ def trycmd(*args, **kwargs):
 
 
 def ssh_execute(ssh, cmd, process_input=None,
-                addl_env=None, check_exit_code=True):
+                addl_env=None, check_exit_code=True,
+                binary=False):
     sanitized_cmd = strutils.mask_password(cmd)
     LOG.debug('Running cmd (SSH): %s', sanitized_cmd)
     if addl_env:
@@ -332,7 +341,8 @@ def ssh_execute(ssh, cmd, process_input=None,
 
     if six.PY3:
         # Decode from the locale using using the surrogateescape error handler
-        # (decoding cannot fail)
+        # (decoding cannot fail). Decode even if binary is True because
+        # mask_password() requires Unicode on Python 3
         stdout = os.fsdecode(stdout)
         stderr = os.fsdecode(stderr)
     stdout = strutils.mask_password(stdout)
@@ -346,6 +356,21 @@ def ssh_execute(ssh, cmd, process_input=None,
                                         stdout=stdout,
                                         stderr=stderr,
                                         cmd=sanitized_cmd)
+
+    if binary:
+        if six.PY2:
+            # On Python 2, stdout is a bytes string if mask_password() failed
+            # to decode it, or an Unicode string otherwise. Encode to the
+            # default encoding (ASCII) because mask_password() decodes from
+            # the same encoding.
+            if isinstance(stdout, unicode):
+                stdout = stdout.encode()
+            if isinstance(stderr, unicode):
+                stderr = stderr.encode()
+        else:
+            # fsencode() is the reverse operation of fsdecode()
+            stdout = os.fsencode(stdout)
+            stderr = os.fsencode(stderr)
 
     return (stdout, stderr)
 
