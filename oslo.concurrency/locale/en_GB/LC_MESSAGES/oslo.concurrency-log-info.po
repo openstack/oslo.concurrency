@@ -21,14 +21,10 @@ msgstr ""
 "Generated-By: Babel 1.3\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: oslo/concurrency/lockutils.py:84
-#: oslo/concurrency/openstack/common/lockutils.py:82
 #, python-format
 msgid "Created lock path: %s"
 msgstr "Created lock path: %s"
 
-#: oslo/concurrency/lockutils.py:201
-#: oslo/concurrency/openstack/common/lockutils.py:251
 #, python-format
 msgid "Failed to remove file %(file)s"
 msgstr "Failed to remove file %(file)s"
