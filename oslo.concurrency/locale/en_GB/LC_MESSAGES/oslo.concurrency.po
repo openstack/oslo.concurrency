@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  oslo.concurrency\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2015-03-24 06:04+0000\n"
+"POT-Creation-Date: 2015-05-28 06:05+0000\n"
 "PO-Revision-Date: 2015-03-24 01:19+0000\n"
 "Last-Translator: Andi Chandler <andi@gowling.com>\n"
 "Language-Team: English (United Kingdom) (http://www.transifex.com/projects/p/"
@@ -21,52 +21,6 @@ msgstr ""
 "Generated-By: Babel 1.3\n"
 
 #, python-format
-msgid "Unable to acquire lock on `%(filename)s` due to %(exception)s"
-msgstr "Unable to acquire lock on `%(filename)s` due to %(exception)s"
-
-msgid "Unable to release an unacquired lock"
-msgstr "Unable to release an unacquired lock"
-
-msgid ""
-"Calling lockutils directly is no longer supported.  Please use the lockutils-"
-"wrapper console script instead."
-msgstr ""
-"Calling lockutils directly is no longer supported.  Please use the lockutils-"
-"wrapper console script instead."
-
-msgid "Unexpected error while running command."
-msgstr "Unexpected error while running command."
-
-#, python-format
-msgid ""
-"%(description)s\n"
-"Command: %(cmd)s\n"
-"Exit code: %(exit_code)s\n"
-"Stdout: %(stdout)r\n"
-"Stderr: %(stderr)r"
-msgstr ""
-"%(description)s\n"
-"Command: %(cmd)s\n"
-"Exit code: %(exit_code)s\n"
-"Stdout: %(stdout)r\n"
-"Stderr: %(stderr)r"
-
-#, python-format
-msgid "Got unknown keyword args: %r"
-msgstr "Got unknown keyword args: %r"
-
-#, python-format
-msgid "Got invalid arg log_errors: %r"
-msgstr "Got invalid arg log_errors: %r"
-
-msgid "Command requested root, but did not specify a root helper."
-msgstr "Command requested root, but did not specify a root helper."
-
-#, python-format
-msgid "Running cmd (subprocess): %s"
-msgstr "Running cmd (subprocess): %s"
-
-#, python-format
 msgid ""
 "%(desc)r\n"
 "command: %(cmd)r\n"
@@ -82,13 +36,17 @@ msgstr ""
 
 #, python-format
 msgid ""
-"Got an OSError\n"
-"command: %(cmd)r\n"
-"errno: %(errno)r"
+"%(description)s\n"
+"Command: %(cmd)s\n"
+"Exit code: %(exit_code)s\n"
+"Stdout: %(stdout)r\n"
+"Stderr: %(stderr)r"
 msgstr ""
-"Got an OSError\n"
-"command: %(cmd)r\n"
-"errno: %(errno)r"
+"%(description)s\n"
+"Command: %(cmd)s\n"
+"Exit code: %(exit_code)s\n"
+"Stdout: %(stdout)r\n"
+"Stderr: %(stderr)r"
 
 #, python-format
 msgid "%r failed. Not Retrying."
@@ -98,8 +56,50 @@ msgstr "%r failed. Not Retrying."
 msgid "%r failed. Retrying."
 msgstr "%r failed. Retrying."
 
+msgid ""
+"Calling lockutils directly is no longer supported.  Please use the lockutils-"
+"wrapper console script instead."
+msgstr ""
+"Calling lockutils directly is no longer supported.  Please use the lockutils-"
+"wrapper console script instead."
+
+msgid "Command requested root, but did not specify a root helper."
+msgstr "Command requested root, but did not specify a root helper."
+
 msgid "Environment not supported over SSH"
 msgstr "Environment not supported over SSH"
+
+#, python-format
+msgid ""
+"Got an OSError\n"
+"command: %(cmd)r\n"
+"errno: %(errno)r"
+msgstr ""
+"Got an OSError\n"
+"command: %(cmd)r\n"
+"errno: %(errno)r"
+
+#, python-format
+msgid "Got invalid arg log_errors: %r"
+msgstr "Got invalid arg log_errors: %r"
+
+#, python-format
+msgid "Got unknown keyword args: %r"
+msgstr "Got unknown keyword args: %r"
+
+#, python-format
+msgid "Running cmd (subprocess): %s"
+msgstr "Running cmd (subprocess): %s"
+
+#, python-format
+msgid "Unable to acquire lock on `%(filename)s` due to %(exception)s"
+msgstr "Unable to acquire lock on `%(filename)s` due to %(exception)s"
+
+msgid "Unable to release an unacquired lock"
+msgstr "Unable to release an unacquired lock"
+
+msgid "Unexpected error while running command."
+msgstr "Unexpected error while running command."
 
 msgid "process_input not supported over SSH"
 msgstr "process_input not supported over SSH"

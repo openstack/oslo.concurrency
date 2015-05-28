@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: oslo.concurrency\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2015-03-24 06:04+0000\n"
+"POT-Creation-Date: 2015-05-28 06:05+0000\n"
 "PO-Revision-Date: 2015-03-24 01:20+0000\n"
 "Last-Translator: Andi Chandler <andi@gowling.com>\n"
 "Language-Team: English (United Kingdom) (http://www.transifex.com/projects/p/"
@@ -22,9 +22,9 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #, python-format
-msgid "Could not unlock the acquired lock `%s`"
-msgstr "Could not unlock the acquired lock `%s`"
-
-#, python-format
 msgid "Could not close the acquired file handle `%s`"
 msgstr "Could not close the acquired file handle `%s`"
+
+#, python-format
+msgid "Could not unlock the acquired lock `%s`"
+msgstr "Could not unlock the acquired lock `%s`"

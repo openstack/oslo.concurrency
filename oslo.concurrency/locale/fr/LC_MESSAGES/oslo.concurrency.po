@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  oslo.concurrency\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2015-03-09 06:08+0000\n"
+"POT-Creation-Date: 2015-05-28 06:05+0000\n"
 "PO-Revision-Date: 2015-03-08 16:41+0000\n"
 "Last-Translator: Maxime COQUEREL <max.coquerel@gmail.com>\n"
 "Language-Team: French (http://www.transifex.com/projects/p/osloconcurrency/"
@@ -19,53 +19,6 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 1.3\n"
-
-#, python-format
-msgid "Unable to acquire lock on `%(filename)s` due to %(exception)s"
-msgstr ""
-"Impossible d'acquérir le verrou sur `%(filename)s` à cause de %(exception)s"
-
-msgid "Unable to release an unacquired lock"
-msgstr "Impossible de libérer le verrou acquis %s"
-
-msgid ""
-"Calling lockutils directly is no longer supported.  Please use the lockutils-"
-"wrapper console script instead."
-msgstr ""
-"Lockutils appelant directement n'est plus pris en charge. Merci d'utiliser "
-"le script de la console lockutils -wrapper à la place."
-
-msgid "Unexpected error while running command."
-msgstr "Erreur inattendue lors de l’exécution de la commande."
-
-#, python-format
-msgid ""
-"%(description)s\n"
-"Command: %(cmd)s\n"
-"Exit code: %(exit_code)s\n"
-"Stdout: %(stdout)r\n"
-"Stderr: %(stderr)r"
-msgstr ""
-"%(description)s\n"
-"Commande: %(cmd)s\n"
-"Code de sortie: %(exit_code)s\n"
-"Stdout: %(stdout)r\n"
-"Stderr: %(stderr)r"
-
-#, python-format
-msgid "Got unknown keyword args: %r"
-msgstr "Ags, mot clé inconnu: %r"
-
-#, python-format
-msgid "Got invalid arg log_errors: %r"
-msgstr "Argument reçu non valide log_errors: %r"
-
-msgid "Command requested root, but did not specify a root helper."
-msgstr "La commande exigeait root, mais n'indiquait pas comment obtenir root."
-
-#, python-format
-msgid "Running cmd (subprocess): %s"
-msgstr "Exécution de la commande (sous-processus): %s"
 
 #, python-format
 msgid ""
@@ -83,13 +36,17 @@ msgstr ""
 
 #, python-format
 msgid ""
-"Got an OSError\n"
-"command: %(cmd)r\n"
-"errno: %(errno)r"
+"%(description)s\n"
+"Command: %(cmd)s\n"
+"Exit code: %(exit_code)s\n"
+"Stdout: %(stdout)r\n"
+"Stderr: %(stderr)r"
 msgstr ""
-"Erreur du Système\n"
-"commande: %(cmd)r\n"
-"errno: %(errno)r"
+"%(description)s\n"
+"Commande: %(cmd)s\n"
+"Code de sortie: %(exit_code)s\n"
+"Stdout: %(stdout)r\n"
+"Stderr: %(stderr)r"
 
 #, python-format
 msgid "%r failed. Not Retrying."
@@ -99,8 +56,51 @@ msgstr "Echec de %r. Nouvelle tentative."
 msgid "%r failed. Retrying."
 msgstr "Echec de %r. Nouvelle tentative."
 
+msgid ""
+"Calling lockutils directly is no longer supported.  Please use the lockutils-"
+"wrapper console script instead."
+msgstr ""
+"Lockutils appelant directement n'est plus pris en charge. Merci d'utiliser "
+"le script de la console lockutils -wrapper à la place."
+
+msgid "Command requested root, but did not specify a root helper."
+msgstr "La commande exigeait root, mais n'indiquait pas comment obtenir root."
+
 msgid "Environment not supported over SSH"
 msgstr "Environnement non prise en charge sur SSH"
+
+#, python-format
+msgid ""
+"Got an OSError\n"
+"command: %(cmd)r\n"
+"errno: %(errno)r"
+msgstr ""
+"Erreur du Système\n"
+"commande: %(cmd)r\n"
+"errno: %(errno)r"
+
+#, python-format
+msgid "Got invalid arg log_errors: %r"
+msgstr "Argument reçu non valide log_errors: %r"
+
+#, python-format
+msgid "Got unknown keyword args: %r"
+msgstr "Ags, mot clé inconnu: %r"
+
+#, python-format
+msgid "Running cmd (subprocess): %s"
+msgstr "Exécution de la commande (sous-processus): %s"
+
+#, python-format
+msgid "Unable to acquire lock on `%(filename)s` due to %(exception)s"
+msgstr ""
+"Impossible d'acquérir le verrou sur `%(filename)s` à cause de %(exception)s"
+
+msgid "Unable to release an unacquired lock"
+msgstr "Impossible de libérer le verrou acquis %s"
+
+msgid "Unexpected error while running command."
+msgstr "Erreur inattendue lors de l’exécution de la commande."
 
 msgid "process_input not supported over SSH"
 msgstr "process_input non pris en charge sur SSH"
