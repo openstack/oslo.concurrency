@@ -2,11 +2,11 @@
  oslo.concurrency
 ==================
 
-.. image:: https://pypip.in/version/oslo.concurrency/badge.svg
+.. image:: https://img.shields.io/pypi/v/oslo.concurrency.svg
     :target: https://pypi.python.org/pypi/oslo.concurrency/
     :alt: Latest Version
 
-.. image:: https://pypip.in/download/oslo.concurrency/badge.svg?period=month
+.. image:: https://img.shields.io/pypi/dm/oslo.concurrency.svg
     :target: https://pypi.python.org/pypi/oslo.concurrency/
     :alt: Downloads
 
