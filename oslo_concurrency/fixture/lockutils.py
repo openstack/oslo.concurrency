@@ -28,7 +28,7 @@ class LockFixture(fixtures.Fixture):
     be the first line in a test method, like so::
 
         def test_method(self):
-            self.useFixture(LockFixture)
+            self.useFixture(LockFixture('lock_name'))
                 ...
 
     or the first line in setUp if all the test methods in the class are
@@ -36,7 +36,7 @@ class LockFixture(fixtures.Fixture):
 
         class TestCase(testtools.testcase):
             def setUp(self):
-                self.useFixture(LockFixture)
+                self.useFixture(LockFixture('lock_name'))
                 super(TestCase, self).setUp()
                     ...
 
