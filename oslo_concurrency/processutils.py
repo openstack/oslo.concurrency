@@ -147,6 +147,17 @@ def execute(*cmd, **kwargs):
     :param binary:          On Python 3, return stdout and stderr as bytes if
                             binary is True, as Unicode otherwise.
     :type binary:           boolean
+    :param on_execute:      This function will be called upon process creation
+                            with the object as a argument.  The Purpose of this
+                            is to allow the caller of `processutils.execute` to
+                            track process creation asynchronously.
+    :type on_execute:       function(:class:`subprocess.Popen`)
+    :param on_completion:   This function will be called upon process
+                            completion with the object as a argument.  The
+                            Purpose of this is to allow the caller of
+                            `processutils.execute` to track process completion
+                            asynchronously.
+    :type on_completion:    function(:class:`subprocess.Popen`)
     :returns:               (stdout, stderr) from process execution
     :raises:                :class:`UnknownArgumentError` on
                             receiving unknown arguments
@@ -167,6 +178,8 @@ def execute(*cmd, **kwargs):
     loglevel = kwargs.pop('loglevel', logging.DEBUG)
     log_errors = kwargs.pop('log_errors', None)
     binary = kwargs.pop('binary', False)
+    on_execute = kwargs.pop('on_execute', None)
+    on_completion = kwargs.pop('on_completion', None)
 
     if isinstance(check_exit_code, bool):
         ignore_exit_code = not check_exit_code
@@ -220,6 +233,9 @@ def execute(*cmd, **kwargs):
                                    cwd=cwd,
                                    env=env_variables)
 
+            if on_execute:
+                on_execute(obj)
+
             result = obj.communicate(process_input)
 
             obj.stdin.close()  # pylint: disable=E1101
@@ -227,6 +243,10 @@ def execute(*cmd, **kwargs):
             end_time = time.time() - start_time
             LOG.log(loglevel, 'CMD "%s" returned: %s in %0.3fs' %
                     (sanitized_cmd, _returncode, end_time))
+
+            if on_completion:
+                on_completion(obj)
+
             if not ignore_exit_code and _returncode not in check_exit_code:
                 (stdout, stderr) = result
                 if six.PY3:
