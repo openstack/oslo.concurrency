@@ -27,6 +27,7 @@ import time
 
 from oslo_utils import importutils
 from oslo_utils import strutils
+from oslo_utils import timeutils
 import six
 
 from oslo_concurrency._i18n import _
@@ -209,10 +210,12 @@ def execute(*cmd, **kwargs):
     cmd = [str(c) for c in cmd]
     sanitized_cmd = strutils.mask_password(' '.join(cmd))
 
+    watch = timeutils.StopWatch()
     while attempts > 0:
         attempts -= 1
+        watch.restart()
+
         try:
-            start_time = time.time()
             LOG.log(loglevel, _('Running cmd (subprocess): %s'), sanitized_cmd)
             _PIPE = subprocess.PIPE  # pylint: disable=E1101
 
@@ -240,9 +243,8 @@ def execute(*cmd, **kwargs):
 
             obj.stdin.close()  # pylint: disable=E1101
             _returncode = obj.returncode  # pylint: disable=E1101
-            end_time = time.time() - start_time
-            LOG.log(loglevel, 'CMD "%s" returned: %s in %0.3fs' %
-                    (sanitized_cmd, _returncode, end_time))
+            LOG.log(loglevel, 'CMD "%s" returned: %s in %0.3fs',
+                    sanitized_cmd, _returncode, watch.elapsed())
 
             if on_completion:
                 on_completion(obj)
