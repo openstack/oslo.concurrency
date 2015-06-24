@@ -22,11 +22,11 @@ import subprocess
 import sys
 import tempfile
 import threading
-import time
 import weakref
 
 import fasteners
 from oslo_config import cfg
+from oslo_utils import timeutils
 import six
 
 from oslo_concurrency._i18n import _, _LI
@@ -236,31 +236,32 @@ def synchronized(name, lock_file_prefix=None, external=False, lock_path=None,
     """
 
     def wrap(f):
+
         @six.wraps(f)
         def inner(*args, **kwargs):
-            t1 = time.time()
+            t1 = timeutils.now()
             t2 = None
             try:
                 with lock(name, lock_file_prefix, external, lock_path,
                           do_log=False, semaphores=semaphores, delay=delay):
-                    t2 = time.time()
+                    t2 = timeutils.now()
                     LOG.debug('Lock "%(name)s" acquired by "%(function)s" :: '
                               'waited %(wait_secs)0.3fs',
                               {'name': name, 'function': f.__name__,
                                'wait_secs': (t2 - t1)})
                     return f(*args, **kwargs)
             finally:
-                t3 = time.time()
+                t3 = timeutils.now()
                 if t2 is None:
                     held_secs = "N/A"
                 else:
                     held_secs = "%0.3fs" % (t3 - t2)
-
                 LOG.debug('Lock "%(name)s" released by "%(function)s" :: held '
                           '%(held_secs)s',
                           {'name': name, 'function': f.__name__,
                            'held_secs': held_secs})
         return inner
+
     return wrap
 
 

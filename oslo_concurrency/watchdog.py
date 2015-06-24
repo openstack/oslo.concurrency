@@ -15,7 +15,8 @@
 import contextlib
 import logging
 import threading
-import time
+
+from oslo_utils import timeutils
 
 
 @contextlib.contextmanager
@@ -53,11 +54,13 @@ def watch(logger, action, level=logging.DEBUG, after=5.0):
             print "done"
 
     """
-    start = time.time()
+    watch = timeutils.StopWatch()
+    watch.start()
 
     def log():
-        msg = "%s not completed after %0.3fs" % (action, time.time() - start)
+        msg = "%s not completed after %0.3fs" % (action, watch.elapsed())
         logger.log(level, msg)
+
     timer = threading.Timer(after, log)
     timer.start()
     try:
