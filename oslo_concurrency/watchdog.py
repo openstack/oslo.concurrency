@@ -67,3 +67,4 @@ def watch(logger, action, level=logging.DEBUG, after=5.0):
         yield
     finally:
         timer.cancel()
+        timer.join()
