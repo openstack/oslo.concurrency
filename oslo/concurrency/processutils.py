@@ -223,16 +223,17 @@ def execute(*cmd, **kwargs):
             if on_execute:
                 on_execute(obj)
 
-            result = obj.communicate(process_input)
+            try:
+                result = obj.communicate(process_input)
 
-            obj.stdin.close()  # pylint: disable=E1101
-            _returncode = obj.returncode  # pylint: disable=E1101
-            end_time = time.time() - start_time
-            LOG.log(loglevel, 'CMD "%s" returned: %s in %ss' %
-                    (sanitized_cmd, _returncode, end_time))
-
-            if on_completion:
-                on_completion(obj)
+                obj.stdin.close()  # pylint: disable=E1101
+                _returncode = obj.returncode  # pylint: disable=E1101
+                end_time = time.time() - start_time
+                LOG.log(loglevel, 'CMD "%s" returned: %s in %ss' %
+                        (sanitized_cmd, _returncode, end_time))
+            finally:
+                if on_completion:
+                    on_completion(obj)
 
             if not ignore_exit_code and _returncode not in check_exit_code:
                 (stdout, stderr) = result
