@@ -7,28 +7,28 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: oslo.concurrency 2.0.1.dev12\n"
+"Project-Id-Version: oslo.concurrency 2.3.1.dev3\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2015-06-23 06:14+0000\n"
+"POT-Creation-Date: 2015-07-29 06:35+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 1.3\n"
+"Generated-By: Babel 2.0\n"
 
-#: oslo_concurrency/lockutils.py:320
+#: oslo_concurrency/lockutils.py:321
 msgid ""
 "Calling lockutils directly is no longer supported.  Please use the "
 "lockutils-wrapper console script instead."
 msgstr ""
 
-#: oslo_concurrency/processutils.py:69
+#: oslo_concurrency/processutils.py:71
 msgid "Unexpected error while running command."
 msgstr ""
 
-#: oslo_concurrency/processutils.py:72
+#: oslo_concurrency/processutils.py:74
 #, python-format
 msgid ""
 "%(description)s\n"
@@ -38,26 +38,26 @@ msgid ""
 "Stderr: %(stderr)r"
 msgstr ""
 
-#: oslo_concurrency/processutils.py:191
+#: oslo_concurrency/processutils.py:203
 #, python-format
 msgid "Got unknown keyword args: %r"
 msgstr ""
 
-#: oslo_concurrency/processutils.py:194
+#: oslo_concurrency/processutils.py:206
 #, python-format
 msgid "Got invalid arg log_errors: %r"
 msgstr ""
 
-#: oslo_concurrency/processutils.py:200
+#: oslo_concurrency/processutils.py:212
 msgid "Command requested root, but did not specify a root helper."
 msgstr ""
 
-#: oslo_concurrency/processutils.py:216
+#: oslo_concurrency/processutils.py:230
 #, python-format
 msgid "Running cmd (subprocess): %s"
 msgstr ""
 
-#: oslo_concurrency/processutils.py:277
+#: oslo_concurrency/processutils.py:292
 #, python-format
 msgid ""
 "%(desc)r\n"
@@ -67,7 +67,7 @@ msgid ""
 "stderr: %(stderr)r"
 msgstr ""
 
-#: oslo_concurrency/processutils.py:286
+#: oslo_concurrency/processutils.py:301
 #, python-format
 msgid ""
 "Got an OSError\n"
@@ -75,21 +75,21 @@ msgid ""
 "errno: %(errno)r"
 msgstr ""
 
-#: oslo_concurrency/processutils.py:292
+#: oslo_concurrency/processutils.py:307
 #, python-format
 msgid "%r failed. Not Retrying."
 msgstr ""
 
-#: oslo_concurrency/processutils.py:296
+#: oslo_concurrency/processutils.py:311
 #, python-format
 msgid "%r failed. Retrying."
 msgstr ""
 
-#: oslo_concurrency/processutils.py:344
+#: oslo_concurrency/processutils.py:359
 msgid "Environment not supported over SSH"
 msgstr ""
 
-#: oslo_concurrency/processutils.py:348
+#: oslo_concurrency/processutils.py:363
 msgid "process_input not supported over SSH"
 msgstr ""
 
