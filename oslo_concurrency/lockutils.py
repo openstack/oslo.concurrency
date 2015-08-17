@@ -26,6 +26,7 @@ import weakref
 
 import fasteners
 from oslo_config import cfg
+from oslo_utils import reflection
 from oslo_utils import timeutils
 import six
 
@@ -247,7 +248,8 @@ def synchronized(name, lock_file_prefix=None, external=False, lock_path=None,
                     t2 = timeutils.now()
                     LOG.debug('Lock "%(name)s" acquired by "%(function)s" :: '
                               'waited %(wait_secs)0.3fs',
-                              {'name': name, 'function': f.__name__,
+                              {'name': name,
+                               'function': reflection.get_callable_name(f),
                                'wait_secs': (t2 - t1)})
                     return f(*args, **kwargs)
             finally:
@@ -258,7 +260,8 @@ def synchronized(name, lock_file_prefix=None, external=False, lock_path=None,
                     held_secs = "%0.3fs" % (t3 - t2)
                 LOG.debug('Lock "%(name)s" released by "%(function)s" :: held '
                           '%(held_secs)s',
-                          {'name': name, 'function': f.__name__,
+                          {'name': name,
+                           'function': reflection.get_callable_name(f),
                            'held_secs': held_secs})
         return inner
 
