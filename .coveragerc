@@ -4,4 +4,4 @@ source = concurrency
 omit = concurrency/tests/*,concurrency/openstack/*
 
 [report]
-ignore-errors = True
+ignore_errors = True
