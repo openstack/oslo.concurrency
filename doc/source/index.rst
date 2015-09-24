@@ -11,6 +11,7 @@ external processes.
 
    installation
    usage
+   opts
    contributing
    history
 
