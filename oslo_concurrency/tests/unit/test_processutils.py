@@ -47,6 +47,9 @@ exit 38"""
 # This byte sequence is undecodable from most encoding
 UNDECODABLE_BYTES = b'[a\x80\xe9\xff]'
 
+TRUE_UTILITY = (sys.platform.startswith('darwin') and
+                '/usr/bin/true' or '/bin/true')
+
 
 class UtilsTest(test_base.BaseTestCase):
     # NOTE(jkoelker) Moar tests from nova need to be ported. But they
@@ -70,11 +73,11 @@ class UtilsTest(test_base.BaseTestCase):
     def test_execute_with_callback(self):
         on_execute_callback = mock.Mock()
         on_completion_callback = mock.Mock()
-        processutils.execute("/bin/true")
+        processutils.execute(TRUE_UTILITY)
         self.assertEqual(0, on_execute_callback.call_count)
         self.assertEqual(0, on_completion_callback.call_count)
 
-        processutils.execute("/bin/true", on_execute=on_execute_callback,
+        processutils.execute(TRUE_UTILITY, on_execute=on_execute_callback,
                              on_completion=on_completion_callback)
         self.assertEqual(1, on_execute_callback.call_count)
         self.assertEqual(1, on_completion_callback.call_count)
@@ -91,7 +94,7 @@ class UtilsTest(test_base.BaseTestCase):
 
         self.assertRaises(IOError,
                           processutils.execute,
-                          "/bin/true",
+                          TRUE_UTILITY,
                           on_execute=on_execute_callback,
                           on_completion=on_completion_callback)
         self.assertEqual(1, on_execute_callback.call_count)
@@ -105,13 +108,13 @@ class UtilsTest(test_base.BaseTestCase):
         def preexec_fn():
             raise processutils.InvalidArgumentError()
 
-        processutils.execute("/bin/true")
+        processutils.execute(TRUE_UTILITY)
 
         expected_exception = (processutils.InvalidArgumentError if six.PY2
                               else subprocess.SubprocessError)
         self.assertRaises(expected_exception,
                           processutils.execute,
-                          "/bin/true",
+                          TRUE_UTILITY,
                           preexec_fn=preexec_fn)
 
 
@@ -318,7 +321,7 @@ grep foo
 
         self.assertEqual(attempts if attempts else 1, mock.mock.call_count)
         self.assertIn('Got an OSError', fixture.output)
-        self.assertIn('errno: 11', fixture.output)
+        self.assertIn('errno: %d' % errno.EAGAIN, fixture.output)
         self.assertIn("'/usr/bin/env false'", fixture.output)
 
     def test_logging_on_communicate_error_1(self):
