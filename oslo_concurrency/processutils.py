@@ -99,7 +99,10 @@ def _subprocess_setup(on_preexec_fn):
 
 @enum.unique
 class LogErrors(enum.IntEnum):
-    """Enumerations that affect if stdout and stderr are logged on error."""
+    """Enumerations that affect if stdout and stderr are logged on error.
+
+    .. versionadded:: 2.7
+    """
 
     #: No logging on errors.
     DEFAULT = 0
@@ -190,6 +193,20 @@ def execute(*cmd, **kwargs):
                             receiving unknown arguments
     :raises:                :class:`ProcessExecutionError`
     :raises:                :class:`OSError`
+
+    .. versionchanged:: 1.5
+       Added *cwd* optional parameter.
+
+    .. versionchanged:: 1.9
+       Added *binary* optional parameter. On Python 3, *stdout* and *stdout*
+       are now returned as Unicode strings by default, or bytes if *binary* is
+       true.
+
+    .. versionchanged:: 2.1
+       Added *on_execute* and *on_completion* optional parameters.
+
+    .. versionchanged:: 2.3
+       Added *preexec_fn* optional parameter.
     """
 
     cwd = kwargs.pop('cwd', None)
@@ -373,6 +390,11 @@ def trycmd(*args, **kwargs):
 def ssh_execute(ssh, cmd, process_input=None,
                 addl_env=None, check_exit_code=True,
                 binary=False):
+    """Run a command through SSH.
+
+    .. versionchanged:: 1.9
+       Added *binary* optional parameter.
+    """
     sanitized_cmd = strutils.mask_password(cmd)
     LOG.debug('Running cmd (SSH): %s', sanitized_cmd)
     if addl_env:

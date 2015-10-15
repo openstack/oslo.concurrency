@@ -72,6 +72,8 @@ def get_lock_path(conf):
 
     :param conf: Configuration object
     :type conf: oslo_config.cfg.ConfigOpts
+
+    .. versionadded:: 1.8
     """
     _register_opts(conf)
     return conf.oslo_concurrency.lock_path
@@ -79,6 +81,10 @@ def get_lock_path(conf):
 
 InterProcessLock = fasteners.InterProcessLock
 ReaderWriterLock = fasteners.ReaderWriterLock
+"""A reader/writer lock.
+
+.. versionadded:: 0.4
+"""
 
 
 class Semaphores(object):
@@ -87,6 +93,8 @@ class Semaphores(object):
     This collection internally uses a weak value dictionary so that when a
     semaphore is no longer in use (by any threads) it will automatically be
     removed from this container by the garbage collector.
+
+    .. versionadded:: 0.3
     """
 
     def __init__(self):
@@ -191,6 +199,12 @@ def lock(name, lock_file_prefix=None, external=False, lock_path=None,
         active threads.
 
     :param delay: Delay between acquisition attempts (in seconds).
+
+    .. versionchanged:: 0.2
+       Added *do_log* optional parameter.
+
+    .. versionchanged:: 0.3
+       Added *delay* and *semaphores* optional parameters.
     """
     int_lock = internal_lock(name, semaphores=semaphores)
     with int_lock:
@@ -234,6 +248,9 @@ def synchronized(name, lock_file_prefix=None, external=False, lock_path=None,
            ...
 
     This way only one of either foo or bar can be executing at a time.
+
+    .. versionchanged:: 0.3
+       Added *delay* and *semaphores* optional parameter.
     """
 
     def wrap(f):

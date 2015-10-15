@@ -12,6 +12,12 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+"""
+Watchdog module.
+
+.. versionadded:: 0.4
+"""
+
 import contextlib
 import logging
 import threading

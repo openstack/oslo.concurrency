@@ -68,6 +68,8 @@ class ExternalLockFixture(fixtures.Fixture):
 
     Alternatively, the useFixture call could be placed in a test class's
     setUp method to provide this functionality to all tests in the class.
+
+    .. versionadded:: 0.3
     """
     def setUp(self):
         super(ExternalLockFixture, self).setUp()
