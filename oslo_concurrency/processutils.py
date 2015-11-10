@@ -24,6 +24,7 @@ import os
 import random
 import shlex
 import signal
+import sys
 import time
 
 from oslo_utils import importutils
@@ -100,6 +101,38 @@ LOG_ALL_ERRORS = 1
 LOG_FINAL_ERROR = 2
 
 
+class ProcessLimits(object):
+    """Resource limits on a process.
+
+    Attributes:
+
+    * address_space: Address space limit in bytes
+    * number_files: Maximum number of open files.
+    * resident_set_size: Maximum Resident Set Size (RSS) in bytes
+
+    This object can be used for the *prlimit* parameter of :func:`execute`.
+    """
+
+    def __init__(self, **kw):
+        self.address_space = kw.pop('address_space', None)
+        self.number_files = kw.pop('number_files', None)
+        self.resident_set_size = kw.pop('resident_set_size', None)
+        if kw:
+            raise ValueError("invalid limits: %s"
+                             % ', '.join(sorted(kw.keys())))
+
+    def prlimit_args(self):
+        """Create a list of arguments for the prlimit command line."""
+        args = []
+        if self.address_space:
+            args.append('--as=%s' % self.address_space)
+        if self.number_files:
+            args.append('--nofile=%s' % self.number_files)
+        if self.resident_set_size:
+            args.append('--rss=%s' % self.resident_set_size)
+        return args
+
+
 def execute(*cmd, **kwargs):
     """Helper method to shell out and execute a command through subprocess.
 
@@ -169,11 +202,18 @@ def execute(*cmd, **kwargs):
                             subprocess.Popen on windows (throws a
                             ValueError)
     :type preexec_fn:       function()
+    :param prlimit:         Set resource limits on the child process. See
+                            below for a detailed description.
+    :type prlimit:          :class:`ProcessLimits`
     :returns:               (stdout, stderr) from process execution
     :raises:                :class:`UnknownArgumentError` on
                             receiving unknown arguments
     :raises:                :class:`ProcessExecutionError`
     :raises:                :class:`OSError`
+
+    The *prlimit* parameter can be used to set resource limits on the child
+    process.  If this parameter is used, the child process will be spawned by a
+    wrapper process which will set limits before spawning the command.
     """
 
     cwd = kwargs.pop('cwd', None)
@@ -192,6 +232,7 @@ def execute(*cmd, **kwargs):
     on_execute = kwargs.pop('on_execute', None)
     on_completion = kwargs.pop('on_completion', None)
     preexec_fn = kwargs.pop('preexec_fn', None)
+    prlimit = kwargs.pop('prlimit', None)
 
     if isinstance(check_exit_code, bool):
         ignore_exit_code = not check_exit_code
@@ -219,6 +260,14 @@ def execute(*cmd, **kwargs):
             cmd = shlex.split(root_helper) + list(cmd)
 
     cmd = [str(c) for c in cmd]
+
+    if prlimit:
+        args = [sys.executable, '-m', 'oslo_concurrency.prlimit']
+        args.extend(prlimit.prlimit_args())
+        args.append('--')
+        args.extend(cmd)
+        cmd = args
+
     sanitized_cmd = strutils.mask_password(' '.join(cmd))
 
     watch = timeutils.StopWatch()
