@@ -19,6 +19,7 @@ import errno
 import logging
 import multiprocessing
 import os
+import resource
 import stat
 import subprocess
 import sys
@@ -724,3 +725,111 @@ class SshExecuteTestCase(test_base.BaseTestCase):
 
     def test_compromising_ssh6(self):
         self._test_compromising_ssh(rc=-1, check=False)
+
+
+class PrlimitTestCase(test_base.BaseTestCase):
+    # Simply program that does nothing and returns an exit code 0.
+    # Use Python to be portable.
+    SIMPLE_PROGRAM = [sys.executable, '-c', 'pass']
+
+    def soft_limit(self, res, substract, default_limit):
+        # Create a new soft limit for a resource, lower than the current
+        # soft limit.
+        soft_limit, hard_limit = resource.getrlimit(res)
+        if soft_limit < 0:
+            soft_limit = default_limit
+        else:
+            soft_limit -= substract
+        return soft_limit
+
+    def memory_limit(self, res):
+        # Substract 1 kB just to get a different limit. Don't substract too
+        # much to avoid memory allocation issues.
+        #
+        # Use 1 GB by default. Limit high enough to be able to load shared
+        # libraries. Limit low enough to be work on 32-bit platforms.
+        return self.soft_limit(res, 1024, 1024 ** 3)
+
+    def limit_address_space(self):
+        max_memory = self.memory_limit(resource.RLIMIT_AS)
+        return processutils.ProcessLimits(address_space=max_memory)
+
+    def test_simple(self):
+        # Simple test running a program (/bin/true) with no parameter
+        prlimit = self.limit_address_space()
+        stdout, stderr = processutils.execute(*self.SIMPLE_PROGRAM,
+                                              prlimit=prlimit)
+        self.assertEqual(stdout.rstrip(), '')
+        self.assertEqual(stderr.rstrip(), '')
+
+    def check_limit(self, prlimit, resource, value):
+        code = ';'.join(('import resource',
+                         'print(resource.getrlimit(resource.%s))' % resource))
+        args = [sys.executable, '-c', code]
+        stdout, stderr = processutils.execute(*args, prlimit=prlimit)
+        expected = (value, value)
+        self.assertEqual(stdout.rstrip(), str(expected))
+
+    def test_address_space(self):
+        prlimit = self.limit_address_space()
+        self.check_limit(prlimit, 'RLIMIT_AS', prlimit.address_space)
+
+    def test_resident_set_size(self):
+        max_memory = self.memory_limit(resource.RLIMIT_RSS)
+        prlimit = processutils.ProcessLimits(resident_set_size=max_memory)
+        self.check_limit(prlimit, 'RLIMIT_RSS', max_memory)
+
+    def test_number_files(self):
+        nfiles = self.soft_limit(resource.RLIMIT_NOFILE, 1, 1024)
+        prlimit = processutils.ProcessLimits(number_files=nfiles)
+        self.check_limit(prlimit, 'RLIMIT_NOFILE', nfiles)
+
+    def test_unsupported_prlimit(self):
+        self.assertRaises(ValueError, processutils.ProcessLimits, xxx=33)
+
+    def test_relative_path(self):
+        prlimit = self.limit_address_space()
+        program = sys.executable
+
+        env = dict(os.environ)
+        env['PATH'] = os.path.dirname(program)
+        args = [os.path.basename(program), '-c', 'pass']
+        processutils.execute(*args, prlimit=prlimit, env_variables=env)
+
+    def test_execv_error(self):
+        prlimit = self.limit_address_space()
+        args = ['/missing_path/dont_exist/program']
+        try:
+            processutils.execute(*args, prlimit=prlimit)
+        except processutils.ProcessExecutionError as exc:
+            self.assertEqual(exc.exit_code, 1)
+            self.assertEqual(exc.stdout, '')
+            expected = ('%s -m oslo_concurrency.prlimit: '
+                        'failed to execute /missing_path/dont_exist/program: '
+                        % os.path.basename(sys.executable))
+            self.assertIn(expected, exc.stderr)
+        else:
+            self.fail("ProcessExecutionError not raised")
+
+    def test_setrlimit_error(self):
+        prlimit = self.limit_address_space()
+
+        # trying to set a limit higher than the current hard limit
+        # with setrlimit() should fail.
+        higher_limit = prlimit.address_space + 1024
+
+        args = [sys.executable, '-m', 'oslo_concurrency.prlimit',
+                '--as=%s' % higher_limit,
+                '--']
+        args.extend(self.SIMPLE_PROGRAM)
+        try:
+            processutils.execute(*args, prlimit=prlimit)
+        except processutils.ProcessExecutionError as exc:
+            self.assertEqual(exc.exit_code, 1)
+            self.assertEqual(exc.stdout, '')
+            expected = ('%s -m oslo_concurrency.prlimit: '
+                        'failed to set the AS resource limit: '
+                        % os.path.basename(sys.executable))
+            self.assertIn(expected, exc.stderr)
+        else:
+            self.fail("ProcessExecutionError not raised")
