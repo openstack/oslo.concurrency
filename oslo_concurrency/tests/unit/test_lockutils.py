@@ -485,8 +485,7 @@ class LockutilsModuleTestCase(test_base.BaseTestCase):
         cmd = [sys.executable, '-m', 'oslo_concurrency.lockutils']
         with open(os.devnull, 'w') as devnull:
             retval = subprocess.call(cmd, stderr=devnull)
-            # 1 for Python 2.7 and 3.x, 255 for 2.6
-            self.assertIn(retval, [1, 255])
+            self.assertEqual(1, retval)
 
 
 class TestLockFixture(test_base.BaseTestCase):
