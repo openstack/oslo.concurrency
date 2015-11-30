@@ -310,6 +310,34 @@ def synchronized_with_prefix(lock_file_prefix):
     return functools.partial(synchronized, lock_file_prefix=lock_file_prefix)
 
 
+def remove_external_lock_file_with_prefix(lock_file_prefix):
+    """Partial object generator for the remove lock file function.
+
+    Redefine remove_external_lock_file_with_prefix in each project like so::
+
+        (in nova/utils.py)
+        from nova.openstack.common import lockutils
+
+        synchronized = lockutils.synchronized_with_prefix('nova-')
+        synchronized_remove = lockutils.remove_external_lock_file_with_prefix(
+            'nova-')
+
+        (in nova/foo.py)
+        from nova import utils
+
+        @utils.synchronized('mylock')
+        def bar(self, *args):
+           ...
+
+        <eventually call synchronized_remove('mylock') to cleanup>
+
+    The lock_file_prefix argument is used to provide lock files on disk with a
+    meaningful prefix.
+    """
+    return functools.partial(remove_external_lock_file,
+                             lock_file_prefix=lock_file_prefix)
+
+
 def _lock_wrapper(argv):
     """Create a dir for locks and pass it to command from arguments
 
