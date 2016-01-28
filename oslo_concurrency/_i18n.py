@@ -16,7 +16,7 @@
 
 import oslo_i18n
 
-_translators = oslo_i18n.TranslatorFactory(domain='oslo.concurrency')
+_translators = oslo_i18n.TranslatorFactory(domain='oslo_concurrency')
 
 # The primary translation function using the well-known name "_"
 _ = _translators.primary
