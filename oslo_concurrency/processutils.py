@@ -63,26 +63,33 @@ class UnknownArgumentError(Exception):
 class ProcessExecutionError(Exception):
     def __init__(self, stdout=None, stderr=None, exit_code=None, cmd=None,
                  description=None):
+        super(ProcessExecutionError, self).__init__(
+            stdout, stderr, exit_code, cmd, description)
         self.exit_code = exit_code
         self.stderr = stderr
         self.stdout = stdout
         self.cmd = cmd
         self.description = description
 
+    def __str__(self):
+        description = self.description
         if description is None:
             description = _("Unexpected error while running command.")
+
+        exit_code = self.exit_code
         if exit_code is None:
             exit_code = '-'
+
         message = _('%(description)s\n'
                     'Command: %(cmd)s\n'
                     'Exit code: %(exit_code)s\n'
                     'Stdout: %(stdout)r\n'
                     'Stderr: %(stderr)r') % {'description': description,
-                                             'cmd': cmd,
+                                             'cmd': self.cmd,
                                              'exit_code': exit_code,
-                                             'stdout': stdout,
-                                             'stderr': stderr}
-        super(ProcessExecutionError, self).__init__(message)
+                                             'stdout': self.stdout,
+                                             'stderr': self.stderr}
+        return message
 
 
 class NoRootWrapSpecified(Exception):
