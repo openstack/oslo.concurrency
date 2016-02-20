@@ -8,7 +8,7 @@ enum34;python_version=='2.7' or python_version=='2.6' or python_version=='3.3' #
 iso8601>=0.1.9 # MIT
 oslo.config>=3.4.0 # Apache-2.0
 oslo.i18n>=2.1.0 # Apache-2.0
-oslo.utils>=3.4.0 # Apache-2.0
+oslo.utils>=3.5.0 # Apache-2.0
 six>=1.9.0 # MIT
 fasteners>=0.7 # Apache-2.0
 retrying!=1.3.0,>=1.2.3 # Apache-2.0
