@@ -41,11 +41,14 @@ _opts = [
                 help='Enables or disables inter-process locks.',
                 deprecated_group='DEFAULT'),
     cfg.StrOpt('lock_path',
-               default=os.environ.get("OSLO_LOCK_PATH"),
+               default=os.environ.get("OSLO_LOCK_PATH", tempfile.gettempdir()),
                help='Directory to use for lock files.  For security, the '
                     'specified directory should only be writable by the user '
                     'running the processes that need locking. '
                     'Defaults to environment variable OSLO_LOCK_PATH. '
+                    'If OSLO_LOCK_PATH is not set in the environment, use the '
+                    'Python tempfile.gettempdir function to find a suitable '
+                    'location. '
                     'If external locks are used, a lock path must be set.',
                deprecated_group='DEFAULT')
 ]
