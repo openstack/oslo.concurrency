@@ -134,16 +134,36 @@ class ProcessLimits(object):
     Attributes:
 
     * address_space: Address space limit in bytes
-    * number_files: Maximum number of open files.
+    * core_file_size: Core file size limit in bytes
+    * cpu_time: CPU time limit in seconds
+    * data_size: Data size limit in bytes
+    * file_size: File size limit in bytes
+    * memory_locked: Locked memory limit in bytes
+    * number_files: Maximum number of open files
+    * number_processes: Maximum number of processes
     * resident_set_size: Maximum Resident Set Size (RSS) in bytes
+    * stack_size: Stack size limit in bytes
 
     This object can be used for the *prlimit* parameter of :func:`execute`.
     """
 
+    _LIMITS = {
+        "address_space": "--as",
+        "core_file_size": "--core",
+        "cpu_time": "--cpu",
+        "data_size": "--data",
+        "file_size": "--fsize",
+        "memory_locked": "--memlock",
+        "number_files": "--nofile",
+        "number_processes": "--nproc",
+        "resident_set_size": "--rss",
+        "stack_size": "--stack",
+    }
+
     def __init__(self, **kw):
-        self.address_space = kw.pop('address_space', None)
-        self.number_files = kw.pop('number_files', None)
-        self.resident_set_size = kw.pop('resident_set_size', None)
+        for limit in self._LIMITS.keys():
+            setattr(self, limit, kw.pop(limit, None))
+
         if kw:
             raise ValueError("invalid limits: %s"
                              % ', '.join(sorted(kw.keys())))
@@ -151,12 +171,10 @@ class ProcessLimits(object):
     def prlimit_args(self):
         """Create a list of arguments for the prlimit command line."""
         args = []
-        if self.address_space:
-            args.append('--as=%s' % self.address_space)
-        if self.number_files:
-            args.append('--nofile=%s' % self.number_files)
-        if self.resident_set_size:
-            args.append('--rss=%s' % self.resident_set_size)
+        for limit in self._LIMITS.keys():
+            val = getattr(self, limit)
+            if val is not None:
+                args.append("%s=%s" % (self._LIMITS[limit], val))
         return args
 
 

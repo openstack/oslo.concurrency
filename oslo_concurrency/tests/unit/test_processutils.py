@@ -752,7 +752,7 @@ class PrlimitTestCase(test_base.BaseTestCase):
         # Create a new soft limit for a resource, lower than the current
         # soft limit.
         soft_limit, hard_limit = resource.getrlimit(res)
-        if soft_limit < 0:
+        if soft_limit <= 0:
             soft_limit = default_limit
         else:
             soft_limit -= substract
@@ -790,6 +790,31 @@ class PrlimitTestCase(test_base.BaseTestCase):
         prlimit = self.limit_address_space()
         self.check_limit(prlimit, 'RLIMIT_AS', prlimit.address_space)
 
+    def test_core_size(self):
+        size = self.soft_limit(resource.RLIMIT_CORE, 1, 1024)
+        prlimit = processutils.ProcessLimits(core_file_size=size)
+        self.check_limit(prlimit, 'RLIMIT_CORE', prlimit.core_file_size)
+
+    def test_cpu_time(self):
+        time = self.soft_limit(resource.RLIMIT_CPU, 1, 1024)
+        prlimit = processutils.ProcessLimits(cpu_time=time)
+        self.check_limit(prlimit, 'RLIMIT_CPU', prlimit.cpu_time)
+
+    def test_data_size(self):
+        max_memory = self.memory_limit(resource.RLIMIT_DATA)
+        prlimit = processutils.ProcessLimits(data_size=max_memory)
+        self.check_limit(prlimit, 'RLIMIT_DATA', max_memory)
+
+    def test_file_size(self):
+        size = self.soft_limit(resource.RLIMIT_FSIZE, 1, 1024)
+        prlimit = processutils.ProcessLimits(file_size=size)
+        self.check_limit(prlimit, 'RLIMIT_FSIZE', prlimit.file_size)
+
+    def test_memory_locked(self):
+        max_memory = self.memory_limit(resource.RLIMIT_MEMLOCK)
+        prlimit = processutils.ProcessLimits(memory_locked=max_memory)
+        self.check_limit(prlimit, 'RLIMIT_MEMLOCK', max_memory)
+
     def test_resident_set_size(self):
         max_memory = self.memory_limit(resource.RLIMIT_RSS)
         prlimit = processutils.ProcessLimits(resident_set_size=max_memory)
@@ -799,6 +824,16 @@ class PrlimitTestCase(test_base.BaseTestCase):
         nfiles = self.soft_limit(resource.RLIMIT_NOFILE, 1, 1024)
         prlimit = processutils.ProcessLimits(number_files=nfiles)
         self.check_limit(prlimit, 'RLIMIT_NOFILE', nfiles)
+
+    def test_number_processes(self):
+        nprocs = self.soft_limit(resource.RLIMIT_NPROC, 1, 65535)
+        prlimit = processutils.ProcessLimits(number_processes=nprocs)
+        self.check_limit(prlimit, 'RLIMIT_NPROC', nprocs)
+
+    def test_stack_size(self):
+        max_memory = self.memory_limit(resource.RLIMIT_STACK)
+        prlimit = processutils.ProcessLimits(stack_size=max_memory)
+        self.check_limit(prlimit, 'RLIMIT_STACK', max_memory)
 
     def test_unsupported_prlimit(self):
         self.assertRaises(ValueError, processutils.ProcessLimits, xxx=33)
