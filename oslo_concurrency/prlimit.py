@@ -26,8 +26,15 @@ USAGE_PROGRAM = ('%s -m oslo_concurrency.prlimit'
 RESOURCES = (
     # argparse argument => resource
     ('as', resource.RLIMIT_AS),
+    ('core', resource.RLIMIT_CORE),
+    ('cpu', resource.RLIMIT_CPU),
+    ('data', resource.RLIMIT_DATA),
+    ('fsize', resource.RLIMIT_FSIZE),
+    ('memlock', resource.RLIMIT_MEMLOCK),
     ('nofile', resource.RLIMIT_NOFILE),
+    ('nproc', resource.RLIMIT_NPROC),
     ('rss', resource.RLIMIT_RSS),
+    ('stack', resource.RLIMIT_STACK),
 )
 
 
@@ -35,10 +42,24 @@ def parse_args():
     parser = argparse.ArgumentParser(description='prlimit', prog=USAGE_PROGRAM)
     parser.add_argument('--as', type=int,
                         help='Address space limit in bytes')
+    parser.add_argument('--core', type=int,
+                        help='Core file size limit in bytes')
+    parser.add_argument('--cpu', type=int,
+                        help='CPU time limit in seconds')
+    parser.add_argument('--data', type=int,
+                        help='Data size limit in bytes')
+    parser.add_argument('--fsize', type=int,
+                        help='File size limit in bytes')
+    parser.add_argument('--memlock', type=int,
+                        help='Locked memory limit in bytes')
     parser.add_argument('--nofile', type=int,
                         help='Maximum number of open files')
+    parser.add_argument('--nproc', type=int,
+                        help='Maximum number of processes')
     parser.add_argument('--rss', type=int,
                         help='Maximum Resident Set Size (RSS) in bytes')
+    parser.add_argument('--stack', type=int,
+                        help='Stack size limit in bytes')
     parser.add_argument('program',
                         help='Program (absolute path)')
     parser.add_argument('program_args', metavar="arg", nargs='...',
