@@ -291,7 +291,7 @@ def synchronized_with_prefix(lock_file_prefix):
     Redefine @synchronized in each project like so::
 
         (in nova/utils.py)
-        from nova.openstack.common import lockutils
+        from oslo_concurrency import lockutils
 
         synchronized = lockutils.synchronized_with_prefix('nova-')
 
@@ -316,7 +316,7 @@ def remove_external_lock_file_with_prefix(lock_file_prefix):
     Redefine remove_external_lock_file_with_prefix in each project like so::
 
         (in nova/utils.py)
-        from nova.openstack.common import lockutils
+        from oslo_concurrency import lockutils
 
         synchronized = lockutils.synchronized_with_prefix('nova-')
         synchronized_remove = lockutils.remove_external_lock_file_with_prefix(
