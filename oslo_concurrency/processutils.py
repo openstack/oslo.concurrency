@@ -466,7 +466,7 @@ def trycmd(*args, **kwargs):
 
 def ssh_execute(ssh, cmd, process_input=None,
                 addl_env=None, check_exit_code=True,
-                binary=False):
+                binary=False, timeout=None):
     """Run a command through SSH.
 
     .. versionchanged:: 1.9
@@ -481,7 +481,8 @@ def ssh_execute(ssh, cmd, process_input=None,
         # This is (probably) fixable if we need it...
         raise InvalidArgumentError(_('process_input not supported over SSH'))
 
-    stdin_stream, stdout_stream, stderr_stream = ssh.exec_command(cmd)
+    stdin_stream, stdout_stream, stderr_stream = ssh.exec_command(
+        cmd, timeout=timeout)
     channel = stdout_stream.channel
 
     # NOTE(justinsb): This seems suspicious...

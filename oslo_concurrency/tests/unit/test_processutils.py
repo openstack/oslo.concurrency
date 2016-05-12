@@ -21,6 +21,7 @@ import multiprocessing
 import os
 import pickle
 import resource
+import socket
 import stat
 import subprocess
 import sys
@@ -599,7 +600,9 @@ class FakeSshConnection(object):
         self.out = out
         self.err = err
 
-    def exec_command(self, cmd):
+    def exec_command(self, cmd, timeout=None):
+        if timeout:
+            raise socket.timeout()
         stdout = FakeSshStream(self.out)
         stdout.setup_channel(self.rc)
         return (six.BytesIO(),
@@ -617,6 +620,12 @@ class SshExecuteTestCase(test_base.BaseTestCase):
         self.assertRaises(processutils.InvalidArgumentError,
                           processutils.ssh_execute,
                           None, 'ls', process_input='important')
+
+    def test_timeout_error(self):
+        self.assertRaises(socket.timeout,
+                          processutils.ssh_execute,
+                          FakeSshConnection(0), 'ls',
+                          timeout=10)
 
     def test_works(self):
         out, err = processutils.ssh_execute(FakeSshConnection(0), 'ls')
