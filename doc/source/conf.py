@@ -14,8 +14,7 @@
 
 import os
 import sys
-import fileinput
-import fnmatch
+
 
 sys.path.insert(0, os.path.abspath('../..'))
 # -- General configuration ----------------------------------------------------
