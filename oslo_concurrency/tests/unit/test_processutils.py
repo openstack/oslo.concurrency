@@ -207,11 +207,12 @@ exit 1
             fp = open(tmpfilename2, 'r')
             runs = fp.read()
             fp.close()
-            self.assertNotEqual(runs.strip(), 'failure', 'stdin did not '
-                                                         'always get passed '
-                                                         'correctly')
+            self.assertNotEqual('failure', 'stdin did not '
+                                           'always get passed '
+                                           'correctly',
+                                runs.strip())
             runs = int(runs.strip())
-            self.assertEqual(runs, 10, 'Ran %d times instead of 10.' % (runs,))
+            self.assertEqual(10, runs, 'Ran %d times instead of 10.' % (runs,))
         finally:
             os.unlink(tmpfilename)
             os.unlink(tmpfilename2)
@@ -398,9 +399,10 @@ grep foo
         self.assertIsInstance(err.stderr, six.text_type)
         self.assertIn('onstdout --password="***"', err.stdout)
         self.assertIn('onstderr --password="***"', err.stderr)
-        self.assertEqual(err.cmd, ' '.join([tmpfilename,
-                                            'password="***"',
-                                            'something']))
+        self.assertEqual(' '.join([tmpfilename,
+                                   'password="***"',
+                                   'something']),
+                         err.cmd)
         self.assertNotIn('secret', str(err))
 
     def execute_undecodable_bytes(self, out_bytes, err_bytes,
@@ -428,8 +430,8 @@ grep foo
         out, err = self.execute_undecodable_bytes(out_bytes, err_bytes,
                                                   binary=binary)
         if six.PY3 and not binary:
-            self.assertEqual(out, os.fsdecode(out_bytes))
-            self.assertEqual(err, os.fsdecode(err_bytes))
+            self.assertEqual(os.fsdecode(out_bytes), out)
+            self.assertEqual(os.fsdecode(err_bytes), err)
         else:
             self.assertEqual(out, out_bytes)
             self.assertEqual(err, err_bytes)
@@ -455,13 +457,13 @@ grep foo
         if six.PY3:
             # On Python 3, stdout and stderr attributes of
             # ProcessExecutionError must always be Unicode
-            self.assertEqual(out, os.fsdecode(out_bytes))
-            self.assertEqual(err, os.fsdecode(err_bytes))
+            self.assertEqual(os.fsdecode(out_bytes), out)
+            self.assertEqual(os.fsdecode(err_bytes), err)
         else:
             # On Python 2, stdout and stderr attributes of
             # ProcessExecutionError must always be bytes
-            self.assertEqual(out, out_bytes)
-            self.assertEqual(err, err_bytes)
+            self.assertEqual(out_bytes, out)
+            self.assertEqual(err_bytes, err)
 
     def test_undecodable_bytes_error(self):
         self.check_undecodable_bytes_error(False)
@@ -482,7 +484,7 @@ grep foo
         self.assertEqual(42, exc.exit_code)
         self.assertEqual('my cmd', exc.cmd)
         self.assertEqual('my description', exc.description)
-        self.assertEqual(exc_message, str(exc))
+        self.assertEqual(str(exc), exc_message)
 
 
 class ProcessExecutionErrorLoggingTest(test_base.BaseTestCase):
@@ -649,11 +651,11 @@ class SshExecuteTestCase(test_base.BaseTestCase):
 
         out, err = processutils.ssh_execute(conn, 'ls', binary=binary)
         if six.PY3 and not binary:
-            self.assertEqual(out, os.fsdecode(out_bytes))
-            self.assertEqual(err, os.fsdecode(err_bytes))
+            self.assertEqual(os.fsdecode(out_bytes), out)
+            self.assertEqual(os.fsdecode(err_bytes), err)
         else:
-            self.assertEqual(out, out_bytes)
-            self.assertEqual(err, err_bytes)
+            self.assertEqual(out_bytes, out)
+            self.assertEqual(err_bytes, err)
 
     def test_undecodable_bytes(self):
         self.check_undecodable_bytes(False)
@@ -679,13 +681,13 @@ class SshExecuteTestCase(test_base.BaseTestCase):
         if six.PY3:
             # On Python 3, stdout and stderr attributes of
             # ProcessExecutionError must always be Unicode
-            self.assertEqual(out, os.fsdecode(out_bytes))
-            self.assertEqual(err, os.fsdecode(err_bytes))
+            self.assertEqual(os.fsdecode(out_bytes), out)
+            self.assertEqual(os.fsdecode(err_bytes), err)
         else:
             # On Python 2, stdout and stderr attributes of
             # ProcessExecutionError must always be bytes
-            self.assertEqual(out, out_bytes)
-            self.assertEqual(err, err_bytes)
+            self.assertEqual(out_bytes, out)
+            self.assertEqual(err_bytes, err)
 
     def test_undecodable_bytes_error(self):
         self.check_undecodable_bytes_error(False)
@@ -720,9 +722,9 @@ class SshExecuteTestCase(test_base.BaseTestCase):
                                     check_exit_code=check)
 
             self.assertEqual(rc, err.exit_code)
-            self.assertEqual(err.stdout, 'password="***"')
-            self.assertEqual(err.stderr, 'password="***"')
-            self.assertEqual(err.cmd, 'ls --password="***"')
+            self.assertEqual('password="***"', err.stdout)
+            self.assertEqual('password="***"', err.stderr)
+            self.assertEqual('ls --password="***"', err.cmd)
             self.assertNotIn('secret', str(err))
             self.assertNotIn('foobar', str(err))
         else:
@@ -784,7 +786,7 @@ class PrlimitTestCase(test_base.BaseTestCase):
         prlimit = self.limit_address_space()
         stdout, stderr = processutils.execute(*self.SIMPLE_PROGRAM,
                                               prlimit=prlimit)
-        self.assertEqual(stdout.rstrip(), '')
+        self.assertEqual('', stdout.rstrip())
         self.assertEqual(stderr.rstrip(), '')
 
     def check_limit(self, prlimit, resource, value):
@@ -793,7 +795,7 @@ class PrlimitTestCase(test_base.BaseTestCase):
         args = [sys.executable, '-c', code]
         stdout, stderr = processutils.execute(*args, prlimit=prlimit)
         expected = (value, value)
-        self.assertEqual(stdout.rstrip(), str(expected))
+        self.assertEqual(str(expected), stdout.rstrip())
 
     def test_address_space(self):
         prlimit = self.limit_address_space()
@@ -862,8 +864,8 @@ class PrlimitTestCase(test_base.BaseTestCase):
         try:
             processutils.execute(*args, prlimit=prlimit)
         except processutils.ProcessExecutionError as exc:
-            self.assertEqual(exc.exit_code, 1)
-            self.assertEqual(exc.stdout, '')
+            self.assertEqual(1, exc.exit_code)
+            self.assertEqual('', exc.stdout)
             expected = ('%s -m oslo_concurrency.prlimit: '
                         'failed to execute /missing_path/dont_exist/program: '
                         % os.path.basename(sys.executable))
@@ -885,8 +887,8 @@ class PrlimitTestCase(test_base.BaseTestCase):
         try:
             processutils.execute(*args, prlimit=prlimit)
         except processutils.ProcessExecutionError as exc:
-            self.assertEqual(exc.exit_code, 1)
-            self.assertEqual(exc.stdout, '')
+            self.assertEqual(1, exc.exit_code)
+            self.assertEqual('', exc.stdout)
             expected = ('%s -m oslo_concurrency.prlimit: '
                         'failed to set the AS resource limit: '
                         % os.path.basename(sys.executable))

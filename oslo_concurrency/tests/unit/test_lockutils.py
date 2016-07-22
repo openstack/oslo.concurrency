@@ -44,9 +44,9 @@ class LockTestCase(test_base.BaseTestCase):
             """Bar."""
             pass
 
-        self.assertEqual(foo.__doc__, 'Bar.', "Wrapped function's docstring "
+        self.assertEqual('Bar.', foo.__doc__, "Wrapped function's docstring "
                                               "got lost")
-        self.assertEqual(foo.__name__, 'foo', "Wrapped function's name "
+        self.assertEqual('foo', foo.__name__, "Wrapped function's name "
                                               "got mangled")
 
     def test_lock_internally_different_collections(self):
@@ -92,7 +92,7 @@ class LockTestCase(test_base.BaseTestCase):
         for thread in threads:
             thread.join()
 
-        self.assertEqual(len(seen_threads), 100)
+        self.assertEqual(100, len(seen_threads))
         # Looking at the seen threads, split it into chunks of 10, and verify
         # that the last 9 match the first in each chunk.
         for i in range(10):
@@ -336,7 +336,7 @@ class LockTestCase(test_base.BaseTestCase):
         conf = cfg.ConfigOpts()
         conf(['--config-file', paths[0]])
         conf.register_opts(lockutils._opts, 'oslo_concurrency')
-        self.assertEqual(conf.oslo_concurrency.lock_path, 'foo')
+        self.assertEqual('foo', conf.oslo_concurrency.lock_path)
         self.assertTrue(conf.oslo_concurrency.disable_process_locking)
 
 
@@ -436,7 +436,7 @@ class FileBasedLockingTestCase(test_base.BaseTestCase):
         thread1.start()
         thread1.join()
         thread.join()
-        self.assertEqual(call_list, ['other', 'other', 'main', 'main'])
+        self.assertEqual(['other', 'other', 'main', 'main'], call_list)
 
     def test_non_destructive(self):
         lock_file = os.path.join(self.lock_dir, 'not-destroyed')
@@ -445,7 +445,7 @@ class FileBasedLockingTestCase(test_base.BaseTestCase):
         with lockutils.lock('not-destroyed', external=True,
                             lock_path=self.lock_dir):
             with open(lock_file) as f:
-                self.assertEqual(f.read(), 'test')
+                self.assertEqual('test', f.read())
 
 
 class LockutilsModuleTestCase(test_base.BaseTestCase):
@@ -470,7 +470,7 @@ class LockutilsModuleTestCase(test_base.BaseTestCase):
         ])
         argv = ['', sys.executable, '-c', script]
         retval = lockutils._lock_wrapper(argv)
-        self.assertEqual(retval, 0, "Bad OSLO_LOCK_PATH has been set")
+        self.assertEqual(0, retval, "Bad OSLO_LOCK_PATH has been set")
 
     def test_return_value_maintained(self):
         script = '\n'.join([
@@ -479,7 +479,7 @@ class LockutilsModuleTestCase(test_base.BaseTestCase):
         ])
         argv = ['', sys.executable, '-c', script]
         retval = lockutils._lock_wrapper(argv)
-        self.assertEqual(retval, 1)
+        self.assertEqual(1, retval)
 
     def test_direct_call_explodes(self):
         cmd = [sys.executable, '-m', 'oslo_concurrency.lockutils']
