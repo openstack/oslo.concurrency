@@ -13,7 +13,7 @@
 #    under the License.
 
 import collections
-import fcntl
+import multiprocessing
 import os
 import shutil
 import signal
@@ -30,6 +30,50 @@ import six
 from oslo_concurrency.fixture import lockutils as fixtures
 from oslo_concurrency import lockutils
 from oslo_config import fixture as config
+
+if sys.platform == 'win32':
+    import msvcrt
+else:
+    import fcntl
+
+
+def lock_file(handle):
+    if sys.platform == 'win32':
+        msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
+    else:
+        fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+
+
+def unlock_file(handle):
+    if sys.platform == 'win32':
+        msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
+    else:
+        fcntl.flock(handle, fcntl.LOCK_UN)
+
+
+def lock_files(handles_dir, out_queue):
+    with lockutils.lock('external', 'test-', external=True):
+        # Open some files we can use for locking
+        handles = []
+        for n in range(50):
+            path = os.path.join(handles_dir, ('file-%s' % n))
+            handles.append(open(path, 'w'))
+
+        # Loop over all the handles and try locking the file
+        # without blocking, keep a count of how many files we
+        # were able to lock and then unlock. If the lock fails
+        # we get an IOError and bail out with bad exit code
+        count = 0
+        for handle in handles:
+            try:
+                lock_file(handle)
+                count += 1
+                unlock_file(handle)
+            except IOError:
+                os._exit(2)
+            finally:
+                handle.close()
+        return out_queue.put(count)
 
 
 class LockTestCase(test_base.BaseTestCase):
@@ -126,51 +170,20 @@ class LockTestCase(test_base.BaseTestCase):
 
     def _do_test_lock_externally(self):
         """We can lock across multiple processes."""
-
-        def lock_files(handles_dir):
-
-            with lockutils.lock('external', 'test-', external=True):
-                # Open some files we can use for locking
-                handles = []
-                for n in range(50):
-                    path = os.path.join(handles_dir, ('file-%s' % n))
-                    handles.append(open(path, 'w'))
-
-                # Loop over all the handles and try locking the file
-                # without blocking, keep a count of how many files we
-                # were able to lock and then unlock. If the lock fails
-                # we get an IOError and bail out with bad exit code
-                count = 0
-                for handle in handles:
-                    try:
-                        fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
-                        count += 1
-                        fcntl.flock(handle, fcntl.LOCK_UN)
-                    except IOError:
-                        os._exit(2)
-                    finally:
-                        handle.close()
-
-                # Check if we were able to open all files
-                self.assertEqual(50, count)
-
         handles_dir = tempfile.mkdtemp()
         try:
             children = []
             for n in range(50):
-                pid = os.fork()
-                if pid:
-                    children.append(pid)
-                else:
-                    try:
-                        lock_files(handles_dir)
-                    finally:
-                        os._exit(0)
-
-            for child in children:
-                (pid, status) = os.waitpid(child, 0)
-                if pid:
-                    self.assertEqual(0, status)
+                queue = multiprocessing.Queue()
+                proc = multiprocessing.Process(
+                    target=lock_files,
+                    args=(handles_dir, queue))
+                proc.start()
+                children.append((proc, queue))
+            for child, queue in children:
+                child.join()
+                count = queue.get(block=False)
+                self.assertEqual(50, count)
         finally:
             if os.path.exists(handles_dir):
                 shutil.rmtree(handles_dir, ignore_errors=True)
