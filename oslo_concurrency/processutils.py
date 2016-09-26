@@ -327,11 +327,16 @@ def execute(*cmd, **kwargs):
     cmd = [str(c) for c in cmd]
 
     if prlimit:
-        args = [sys.executable, '-m', 'oslo_concurrency.prlimit']
-        args.extend(prlimit.prlimit_args())
-        args.append('--')
-        args.extend(cmd)
-        cmd = args
+        if os.name == 'nt':
+            LOG.log(loglevel,
+                    _('Process resource limits are ignored as '
+                      'this feature is not supported on Windows.'))
+        else:
+            args = [sys.executable, '-m', 'oslo_concurrency.prlimit']
+            args.extend(prlimit.prlimit_args())
+            args.append('--')
+            args.extend(cmd)
+            cmd = args
 
     sanitized_cmd = strutils.mask_password(' '.join(cmd))
 
