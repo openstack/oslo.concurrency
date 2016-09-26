@@ -895,3 +895,25 @@ class PrlimitTestCase(test_base.BaseTestCase):
             self.assertIn(expected, exc.stderr)
         else:
             self.fail("ProcessExecutionError not raised")
+
+    @mock.patch.object(os, 'name', 'nt')
+    @mock.patch.object(processutils.subprocess, "Popen")
+    def test_prlimit_windows(self, mock_popen):
+        # We want to ensure that process resource limits are
+        # ignored on Windows, in which case this feature is not
+        # supported. We'll just check the command passed to Popen,
+        # which is expected to be unaltered.
+        prlimit = self.limit_address_space()
+        mock_popen.return_value.communicate.return_value = None
+
+        processutils.execute(
+            *self.SIMPLE_PROGRAM,
+            prlimit=prlimit,
+            check_exit_code=False)
+
+        mock_popen.assert_called_once_with(
+            self.SIMPLE_PROGRAM,
+            stdin=mock.ANY, stdout=mock.ANY,
+            stderr=mock.ANY, close_fds=mock.ANY,
+            preexec_fn=mock.ANY, shell=mock.ANY,
+            cwd=mock.ANY, env=mock.ANY)
