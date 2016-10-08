@@ -263,9 +263,9 @@ class LockTestCase(test_base.BaseTestCase):
             # a semaphore will be yielded
             with lockutils.lock("test") as sem:
                 if six.PY2:
-                    self.assertTrue(isinstance(sem, threading._Semaphore))
+                    self.assertIsInstance(sem, threading._Semaphore)
                 else:
-                    self.assertTrue(isinstance(sem, threading.Semaphore))
+                    self.assertIsInstance(sem, threading.Semaphore)
 
                 # NOTE(flaper87): Lock is external so an InterProcessLock
                 # will be yielded.
@@ -274,8 +274,8 @@ class LockTestCase(test_base.BaseTestCase):
 
                 with lockutils.lock("test1",
                                     external=True) as lock1:
-                    self.assertTrue(isinstance(lock1,
-                                               lockutils.InterProcessLock))
+                    self.assertIsInstance(lock1,
+                                          lockutils.InterProcessLock)
         finally:
             if os.path.exists(lock_dir):
                 shutil.rmtree(lock_dir, ignore_errors=True)
@@ -289,9 +289,9 @@ class LockTestCase(test_base.BaseTestCase):
         try:
             with lockutils.lock("test") as sem:
                 if six.PY2:
-                    self.assertTrue(isinstance(sem, threading._Semaphore))
+                    self.assertIsInstance(sem, threading._Semaphore)
                 else:
-                    self.assertTrue(isinstance(sem, threading.Semaphore))
+                    self.assertIsInstance(sem, threading.Semaphore)
 
                 with lockutils.lock("test2", external=True) as lock:
                     self.assertTrue(lock.exists())
