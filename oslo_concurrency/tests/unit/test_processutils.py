@@ -125,23 +125,23 @@ class ProcessExecutionErrorTest(test_base.BaseTestCase):
 
     def test_defaults(self):
         err = processutils.ProcessExecutionError()
-        self.assertTrue('None\n' in six.text_type(err))
-        self.assertTrue('code: -\n' in six.text_type(err))
+        self.assertIn('None\n', six.text_type(err))
+        self.assertIn('code: -\n', six.text_type(err))
 
     def test_with_description(self):
         description = 'The Narwhal Bacons at Midnight'
         err = processutils.ProcessExecutionError(description=description)
-        self.assertTrue(description in six.text_type(err))
+        self.assertIn(description, six.text_type(err))
 
     def test_with_exit_code(self):
         exit_code = 0
         err = processutils.ProcessExecutionError(exit_code=exit_code)
-        self.assertTrue(str(exit_code) in six.text_type(err))
+        self.assertIn(str(exit_code), six.text_type(err))
 
     def test_with_cmd(self):
         cmd = 'telinit'
         err = processutils.ProcessExecutionError(cmd=cmd)
-        self.assertTrue(cmd in six.text_type(err))
+        self.assertIn(cmd, six.text_type(err))
 
     def test_with_stdout(self):
         stdout = """
@@ -165,12 +165,12 @@ class ProcessExecutionErrorTest(test_base.BaseTestCase):
         """.strip()
         err = processutils.ProcessExecutionError(stdout=stdout)
         print(six.text_type(err))
-        self.assertTrue('people-kings' in six.text_type(err))
+        self.assertIn('people-kings', six.text_type(err))
 
     def test_with_stderr(self):
         stderr = 'Cottonian library'
         err = processutils.ProcessExecutionError(stderr=stderr)
-        self.assertTrue(stderr in six.text_type(err))
+        self.assertIn(stderr, six.text_type(err))
 
     def test_retry_on_failure(self):
         fd, tmpfilename = tempfile.mkstemp()
