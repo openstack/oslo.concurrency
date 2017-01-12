@@ -28,6 +28,7 @@ import sys
 import time
 
 import enum
+from oslo_utils import encodeutils
 from oslo_utils import importutils
 from oslo_utils import strutils
 from oslo_utils import timeutils
@@ -188,7 +189,7 @@ def execute(*cmd, **kwargs):
     :param cwd:             Set the current working directory
     :type cwd:              string
     :param process_input:   Send to opened process.
-    :type process_input:    string
+    :type process_input:    string or bytes
     :param env_variables:   Environment variables and their values that
                             will be set for the process.
     :type env_variables:    dict
@@ -259,6 +260,9 @@ def execute(*cmd, **kwargs):
     process.  If this parameter is used, the child process will be spawned by a
     wrapper process which will set limits before spawning the command.
 
+    .. versionchanged:: 3.17
+       *process_input* can now be either bytes or string on python3.
+
     .. versionchanged:: 3.4
        Added *prlimit* optional parameter.
 
@@ -266,7 +270,7 @@ def execute(*cmd, **kwargs):
        Added *cwd* optional parameter.
 
     .. versionchanged:: 1.9
-       Added *binary* optional parameter. On Python 3, *stdout* and *stdout*
+       Added *binary* optional parameter. On Python 3, *stdout* and *stderr*
        are now returned as Unicode strings by default, or bytes if *binary* is
        true.
 
@@ -279,6 +283,8 @@ def execute(*cmd, **kwargs):
 
     cwd = kwargs.pop('cwd', None)
     process_input = kwargs.pop('process_input', None)
+    if process_input is not None:
+        process_input = encodeutils.to_utf8(process_input)
     env_variables = kwargs.pop('env_variables', None)
     check_exit_code = kwargs.pop('check_exit_code', [0])
     ignore_exit_code = False
