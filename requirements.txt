@@ -2,10 +2,10 @@
 # of appearance. Changing the order has an impact on the overall integration
 # process, which may cause wedges in the gate later.
 
-pbr>=1.8 # Apache-2.0
+pbr>=2.0.0 # Apache-2.0
 enum34;python_version=='2.7' or python_version=='2.6' or python_version=='3.3' # BSD
 oslo.config!=3.18.0,>=3.14.0 # Apache-2.0
 oslo.i18n>=2.1.0 # Apache-2.0
-oslo.utils>=3.18.0 # Apache-2.0
+oslo.utils>=3.20.0 # Apache-2.0
 six>=1.9.0 # MIT
 fasteners>=0.7 # Apache-2.0
