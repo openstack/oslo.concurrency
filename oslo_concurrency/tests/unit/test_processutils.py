@@ -33,7 +33,6 @@ from oslotest import base as test_base
 import six
 
 from oslo_concurrency import processutils
-from oslotest import mockpatch
 
 
 PROCESS_EXECUTION_ERROR_LOGGING_TEST = """#!/bin/bash
@@ -284,7 +283,7 @@ grep foo
     # This test and the one below ensures that when communicate raises
     # an OSError, we do the right thing(s)
     def test_exception_on_communicate_error(self):
-        mock = self.useFixture(mockpatch.Patch(
+        mock = self.useFixture(fixtures.MockPatch(
             'subprocess.Popen.communicate',
             side_effect=OSError(errno.EAGAIN, 'fake-test')))
 
@@ -297,7 +296,7 @@ grep foo
         self.assertEqual(1, mock.mock.call_count)
 
     def test_retry_on_communicate_error(self):
-        mock = self.useFixture(mockpatch.Patch(
+        mock = self.useFixture(fixtures.MockPatch(
             'subprocess.Popen.communicate',
             side_effect=OSError(errno.EAGAIN, 'fake-test')))
 
@@ -312,7 +311,7 @@ grep foo
 
     def _test_and_check_logging_communicate_errors(self, log_errors=None,
                                                    attempts=None):
-        mock = self.useFixture(mockpatch.Patch(
+        mock = self.useFixture(fixtures.MockPatch(
             'subprocess.Popen.communicate',
             side_effect=OSError(errno.EAGAIN, 'fake-test')))
 
