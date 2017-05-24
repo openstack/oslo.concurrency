@@ -47,6 +47,32 @@ sure that the names of the locks used are carefully chosen (typically by
 namespacing them to your app so that other apps will not chose the same
 names).
 
+Enabling fair locking
+=====================
+
+By default there is no requirement that the lock is ``fair``.  That is, it's
+possible for a thread to block waiting for the lock, then have another thread
+block waiting for the lock, and when the lock is released by the current owner
+the second waiter could acquire the lock before the first.  In an extreme case
+you could have a whole string of other threads acquire the lock before the
+first waiter acquires it, resulting in unpredictable amounts of latency.
+
+For cases where this is a problem, it's possible to specify the use of fair
+locks::
+
+    @lockutils.synchronized('not_thread_process_safe', fair=True)
+    def not_thread_process_safe():
+        pass
+
+When using fair locks the lock itself is slightly more expensive (which
+shouldn't matter in most cases), but it will ensure that all threads that
+block waiting for the lock will acquire it in the order that they blocked.
+
+The exception to this is when specifying both ``external`` and ``fair``
+locks.  In this case, the ordering *within* a given process will be fair, but
+the ordering *between* processes will be determined by the behaviour of the
+underlying OS.
+
 Common ways to prefix/namespace the synchronized decorator
 ==========================================================
 

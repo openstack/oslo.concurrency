@@ -147,6 +147,45 @@ class LockTestCase(test_base.BaseTestCase):
         self.assertEqual(saved_sem_num, len(lockutils._semaphores),
                          "Semaphore leak detected")
 
+    def test_lock_internal_fair(self):
+        """Check that we're actually fair."""
+
+        def f(_id):
+            with lockutils.lock('testlock', 'test-',
+                                external=False, fair=True):
+                lock_holder.append(_id)
+
+        lock_holder = []
+        threads = []
+        # While holding the fair lock, spawn a bunch of threads that all try
+        # to acquire the lock.  They will all block.  Then release the lock
+        # and see what happens.
+        with lockutils.lock('testlock', 'test-', external=False, fair=True):
+            for i in range(10):
+                thread = threading.Thread(target=f, args=(i,))
+                threads.append(thread)
+                thread.start()
+                # Allow some time for the new thread to get queued onto the
+                # list of pending writers before continuing.  This is gross
+                # but there's no way around it without using knowledge of
+                # fasteners internals.
+                time.sleep(0.5)
+        # Wait for all threads.
+        for thread in threads:
+            thread.join()
+
+        self.assertEqual(10, len(lock_holder))
+        # Check that the threads each got the lock in fair order.
+        for i in range(10):
+            self.assertEqual(i, lock_holder[i])
+
+    def test_fair_lock_with_semaphore(self):
+        def do_test():
+            s = lockutils.Semaphores()
+            with lockutils.lock('testlock', 'test-', semaphores=s, fair=True):
+                pass
+        self.assertRaises(NotImplementedError, do_test)
+
     def test_nested_synchronized_external_works(self):
         """We can nest external syncs."""
         tempdir = tempfile.mkdtemp()
