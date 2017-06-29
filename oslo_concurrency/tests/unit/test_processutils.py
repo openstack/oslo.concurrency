@@ -112,12 +112,17 @@ class UtilsTest(test_base.BaseTestCase):
 
         processutils.execute(TRUE_UTILITY)
 
-        expected_exception = (processutils.InvalidArgumentError if six.PY2
-                              else subprocess.SubprocessError)
-        self.assertRaises(expected_exception,
-                          processutils.execute,
-                          TRUE_UTILITY,
-                          preexec_fn=preexec_fn)
+        if six.PY2:
+            self.assertRaises(processutils.InvalidArgumentError,
+                              processutils.execute,
+                              TRUE_UTILITY,
+                              preexec_fn=preexec_fn)
+        else:
+            try:
+                processutils.execute(TRUE_UTILITY, preexec_fn=preexec_fn)
+            except Exception as e:
+                if type(e).__name__ != 'SubprocessError':
+                    raise
 
 
 class ProcessExecutionErrorTest(test_base.BaseTestCase):
