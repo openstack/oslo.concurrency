@@ -10,7 +10,7 @@ example::
 
 .. seealso::
 
-   * :doc:`API Documentation <api/index>`
+   * :doc:`API Documentation <../reference/index>`
 
 Locking a function (local to a process)
 =======================================

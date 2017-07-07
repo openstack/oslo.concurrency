@@ -9,26 +9,11 @@ external processes.
 .. toctree::
    :maxdepth: 1
 
-   installation
-   usage
-   opts
-   contributing
-
-API Documentation
-=================
-
-.. toctree::
-   :maxdepth: 1
-
-   api/index
-
-Release Notes
-=============
-
-.. toctree::
-   :maxdepth: 1
-
-   history
+   install/index
+   user/index
+   configuration/index
+   contributor/index
+   reference/index
 
 Indices and tables
 ==================
