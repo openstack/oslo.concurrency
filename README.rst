@@ -24,6 +24,6 @@ multi-process applications using locking mechanisms and for running
 external processes.
 
 * Free software: Apache license
-* Documentation: http://docs.openstack.org/developer/oslo.concurrency
-* Source: http://git.openstack.org/cgit/openstack/oslo.concurrency
-* Bugs: http://bugs.launchpad.net/oslo.concurrency
+* Documentation: https://docs.openstack.org/oslo.concurrency/latest/
+* Source: https://git.openstack.org/cgit/openstack/oslo.concurrency
+* Bugs: https://bugs.launchpad.net/oslo.concurrency
