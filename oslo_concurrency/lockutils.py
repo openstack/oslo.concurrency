@@ -214,6 +214,9 @@ def lock(name, lock_file_prefix=None, external=False, lock_path=None,
             if external and not CONF.oslo_concurrency.disable_process_locking:
                 ext_lock = external_lock(name, lock_file_prefix, lock_path)
                 ext_lock.acquire(delay=delay)
+                if do_log:
+                    LOG.debug('Acquired external semaphore "%(lock)s"',
+                              {'lock': name})
                 try:
                     yield ext_lock
                 finally:
