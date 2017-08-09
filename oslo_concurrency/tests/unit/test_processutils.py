@@ -124,6 +124,45 @@ class UtilsTest(test_base.BaseTestCase):
                 if type(e).__name__ != 'SubprocessError':
                     raise
 
+    @mock.patch.object(os, 'name', 'nt')
+    @mock.patch.object(processutils.subprocess, "Popen")
+    @mock.patch.object(processutils, 'tpool', create=True)
+    def _test_windows_execute(self, mock_tpool, mock_popen,
+                              use_eventlet=False):
+        # We want to ensure that if eventlet is used on Windows,
+        # 'communicate' calls are wrapped with eventlet.tpool.execute.
+        mock_comm = mock_popen.return_value.communicate
+        mock_comm.return_value = None
+        mock_tpool.execute.return_value = mock_comm.return_value
+
+        fake_pinput = 'fake pinput'.encode('utf-8')
+
+        with mock.patch.object(processutils, 'eventlet_patched',
+                               use_eventlet):
+            processutils.execute(
+                TRUE_UTILITY,
+                process_input=fake_pinput,
+                check_exit_code=False)
+
+        mock_popen.assert_called_once_with(
+            [TRUE_UTILITY],
+            stdin=mock.ANY, stdout=mock.ANY,
+            stderr=mock.ANY, close_fds=mock.ANY,
+            preexec_fn=mock.ANY, shell=mock.ANY,
+            cwd=mock.ANY, env=mock.ANY)
+
+        if use_eventlet:
+            mock_tpool.execute.assert_called_once_with(
+                mock_comm, fake_pinput)
+        else:
+            mock_comm.assert_called_once_with(fake_pinput)
+
+    def test_windows_execute_without_eventlet(self):
+        self._test_windows_execute()
+
+    def test_windows_execute_using_eventlet(self):
+        self._test_windows_execute(use_eventlet=True)
+
 
 class ProcessExecutionErrorTest(test_base.BaseTestCase):
 
