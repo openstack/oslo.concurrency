@@ -42,8 +42,20 @@ from oslo_concurrency._i18n import _
 # time module as the check because that's a monkey patched module we use
 # in combination with subprocess below, so they need to match.
 eventlet = importutils.try_import('eventlet')
-if eventlet and eventlet.patcher.is_monkey_patched(time):
-    from eventlet.green import subprocess
+eventlet_patched = eventlet and eventlet.patcher.is_monkey_patched(time)
+if eventlet_patched:
+    if os.name == 'nt':
+        # subprocess.Popen.communicate will spawn two threads consuming
+        # stdout/stderr when passing data through stdin. We need to make
+        # sure that *native* threads will be used as pipes are blocking
+        # on Windows.
+        # Recent eventlet versions actually do patch subprocess.
+        subprocess = eventlet.patcher.original('subprocess')
+        subprocess.threading = eventlet.patcher.original('threading')
+    else:
+        from eventlet.green import subprocess
+
+    from eventlet import tpool
 else:
     import subprocess
 
@@ -377,7 +389,14 @@ def execute(*cmd, **kwargs):
                 on_execute(obj)
 
             try:
-                result = obj.communicate(process_input)
+                # eventlet.green.subprocess is not really greenthread friendly
+                # on Windows. In order to avoid blocking other greenthreads,
+                # we have to wrap this call using tpool.
+                if eventlet_patched and os.name == 'nt':
+                    result = tpool.execute(obj.communicate,
+                                           process_input)
+                else:
+                    result = obj.communicate(process_input)
 
                 obj.stdin.close()  # pylint: disable=E1101
                 _returncode = obj.returncode  # pylint: disable=E1101
