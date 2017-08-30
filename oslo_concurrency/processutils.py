@@ -474,8 +474,10 @@ def trycmd(*args, **kwargs):
     the command's stdout and stderr.  If 'err' is not empty then the
     command can be considered to have failed.
 
-    :discard_warnings   True | False. Defaults to False. If set to True,
-                        then for succeeding commands, stderr is cleared
+    :param discard_warnings:  True | False. Defaults to False. If set to True,
+                              then for succeeding commands, stderr is cleared
+    :type discard_warnings:   boolean
+    :returns:                 (out, err) from process execution
 
     """
     discard_warnings = kwargs.pop('discard_warnings', False)
@@ -563,8 +565,8 @@ def ssh_execute(ssh, cmd, process_input=None,
 def get_worker_count():
     """Utility to get the default worker count.
 
-    @return: The number of CPUs if that can be determined, else a default
-             worker count of 1 is returned.
+    :returns: The number of CPUs if that can be determined, else a default
+              worker count of 1 is returned.
     """
     try:
         return multiprocessing.cpu_count()
