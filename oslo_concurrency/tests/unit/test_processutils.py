@@ -968,3 +968,16 @@ class PrlimitTestCase(test_base.BaseTestCase):
             stderr=mock.ANY, close_fds=mock.ANY,
             preexec_fn=mock.ANY, shell=mock.ANY,
             cwd=mock.ANY, env=mock.ANY)
+
+    @mock.patch.object(processutils.subprocess, 'Popen')
+    def test_python_exec(self, sub_mock):
+        mock_subprocess = mock.MagicMock()
+        mock_subprocess.communicate.return_value = (b'', b'')
+        sub_mock.return_value = mock_subprocess
+        args = ['/a/command']
+        prlimit = self.limit_address_space()
+
+        processutils.execute(*args, prlimit=prlimit, check_exit_code=False,
+                             python_exec='/fake_path')
+        python_path = sub_mock.mock_calls[0][1][0][0]
+        self.assertEqual('/fake_path', python_path)

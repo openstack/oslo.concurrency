@@ -262,6 +262,10 @@ def execute(*cmd, **kwargs):
     :param prlimit:         Set resource limits on the child process. See
                             below for a detailed description.
     :type prlimit:          :class:`ProcessLimits`
+    :param python_exec:     The python executable to use for enforcing
+                            prlimits. If this is not set it will default to use
+                            sys.executable.
+    :type python_exec:      string
     :returns:               (stdout, stderr) from process execution
     :raises:                :class:`UnknownArgumentError` on
                             receiving unknown arguments
@@ -314,6 +318,7 @@ def execute(*cmd, **kwargs):
     on_completion = kwargs.pop('on_completion', None)
     preexec_fn = kwargs.pop('preexec_fn', None)
     prlimit = kwargs.pop('prlimit', None)
+    python_exec = kwargs.pop('python_exec', sys.executable)
 
     if isinstance(check_exit_code, bool):
         ignore_exit_code = not check_exit_code
@@ -350,7 +355,7 @@ def execute(*cmd, **kwargs):
                     _('Process resource limits are ignored as '
                       'this feature is not supported on Windows.'))
         else:
-            args = [sys.executable, '-m', 'oslo_concurrency.prlimit']
+            args = [python_exec, '-m', 'oslo_concurrency.prlimit']
             args.extend(prlimit.prlimit_args())
             args.append('--')
             args.extend(cmd)
