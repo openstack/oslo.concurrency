@@ -503,8 +503,20 @@ def trycmd(*args, **kwargs):
 
 def ssh_execute(ssh, cmd, process_input=None,
                 addl_env=None, check_exit_code=True,
-                binary=False, timeout=None):
+                binary=False, timeout=None,
+                sanitize_stdout=True):
     """Run a command through SSH.
+
+    :param ssh:             An SSH Connection object.
+    :param cmd:             The command string to run.
+    :param check_exit_code: If an exception should be raised for non-zero
+                            exit.
+    :param timeout:         Max time in secs to wait for command execution.
+    :param sanitize_stdout: Defaults to True. If set to True, stdout is
+                            sanitized i.e. any sensitive information like
+                            password in command output will be masked.
+    :returns:               (stdout, stderr) from command execution through
+                            SSH.
 
     .. versionchanged:: 1.9
        Added *binary* optional parameter.
@@ -537,13 +549,21 @@ def ssh_execute(ssh, cmd, process_input=None,
         # mask_password() requires Unicode on Python 3
         stdout = os.fsdecode(stdout)
         stderr = os.fsdecode(stderr)
-    stdout = strutils.mask_password(stdout)
+
+    if sanitize_stdout:
+        stdout = strutils.mask_password(stdout)
+
     stderr = strutils.mask_password(stderr)
 
     # exit_status == -1 if no exit code was returned
     if exit_status != -1:
         LOG.debug('Result was %s' % exit_status)
         if check_exit_code and exit_status != 0:
+            # In case of errors in command run, due to poor implementation of
+            # command executable program, there might be chance that it leaks
+            # sensitive information like password to stdout. In such cases
+            # stdout needs to be sanitized even though sanitize_stdout=False.
+            stdout = strutils.mask_password(stdout)
             raise ProcessExecutionError(exit_code=exit_status,
                                         stdout=stdout,
                                         stderr=stderr,
