@@ -758,7 +758,8 @@ class SshExecuteTestCase(test_base.BaseTestCase):
         fake_stdout.channel.recv_exit_status.return_value = rc
         fake_stdout.read.return_value = b'password="secret"'
 
-        fake_stderr = six.BytesIO(b'password="foobar"')
+        fake_stderr = mock.Mock()
+        fake_stderr.read.return_value = b'password="foobar"'
 
         command = 'ls --password="bar"'
 
@@ -778,10 +779,33 @@ class SshExecuteTestCase(test_base.BaseTestCase):
             self.assertEqual('ls --password="***"', err.cmd)
             self.assertNotIn('secret', str(err))
             self.assertNotIn('foobar', str(err))
+
+            # test ssh_execute with sanitize_stdout=False
+            err = self.assertRaises(processutils.ProcessExecutionError,
+                                    processutils.ssh_execute,
+                                    connection, command,
+                                    check_exit_code=check,
+                                    sanitize_stdout=False)
+
+            self.assertEqual(rc, err.exit_code)
+            self.assertEqual('password="***"', err.stdout)
+            self.assertEqual('password="***"', err.stderr)
+            self.assertEqual('ls --password="***"', err.cmd)
+            self.assertNotIn('secret', str(err))
+            self.assertNotIn('foobar', str(err))
         else:
             o, e = processutils.ssh_execute(connection, command,
                                             check_exit_code=check)
             self.assertEqual('password="***"', o)
+            self.assertEqual('password="***"', e)
+            self.assertIn('password="***"', fixture.output)
+            self.assertNotIn('bar', fixture.output)
+
+            # test ssh_execute with sanitize_stdout=False
+            o, e = processutils.ssh_execute(connection, command,
+                                            check_exit_code=check,
+                                            sanitize_stdout=False)
+            self.assertEqual('password="secret"', o)
             self.assertEqual('password="***"', e)
             self.assertIn('password="***"', fixture.output)
             self.assertNotIn('bar', fixture.output)
