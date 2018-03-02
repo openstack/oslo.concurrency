@@ -12,17 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-import sys
-
-
-sys.path.insert(0, os.path.abspath('../..'))
 # -- General configuration ----------------------------------------------------
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinxcontrib.apidoc',
     'openstackdocstheme',
     'oslo_config.sphinxext',
 ]
@@ -31,18 +27,6 @@ extensions = [
 repository_name = 'openstack/oslo.concurrency'
 bug_project = 'oslo.concurrency'
 bug_tag = ''
-html_last_updated_fmt = '%Y-%m-%d %H:%M'
-
-# autodoc generation is a bit aggressive and a nuisance when doing heavy
-# text edit cycles.
-# execute "export SPHINX_DEBUG=1" in your terminal to disable
-
-# A list of glob-style patterns that should be excluded when looking for source
-# files.
-exclude_patterns = []
-
-# The suffix of source filenames.
-source_suffix = '.rst'
 
 # The master toctree document.
 master_doc = 'index'
@@ -61,26 +45,18 @@ add_module_names = True
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
 
-# -- Options for HTML output --------------------------------------------------
 
-# The theme to use for HTML and HTML Help pages.  Major themes that come with
-# Sphinx are currently 'default' and 'sphinxdoc'.
-# html_theme_path = ["."]
+# -- Options for HTML output -------------------------------------------------
+
 html_theme = 'openstackdocs'
-# html_static_path = ['static']
 
-# Output file base name for HTML help builder.
-htmlhelp_basename = '%sdoc' % project
 
-# Grouping the document tree into LaTeX files. List of tuples
-# (source start file, target name, title, author, documentclass
-# [howto/manual]).
-latex_documents = [
-    ('index',
-     '%s.tex' % project,
-     u'%s Documentation' % project,
-     u'OpenStack Foundation', 'manual'),
+# -- sphinxcontrib.apidoc configuration --------------------------------------
+
+apidoc_module_dir = '../../'
+apidoc_output_dir = 'reference/api'
+apidoc_excluded_paths = [
+    'oslo_concurrency/tests',
+    'oslo_concurrency/_*',
+    'setup.py',
 ]
-
-# Example configuration for intersphinx: refer to the Python standard library.
-# intersphinx_mapping = {'http://docs.python.org/': None}

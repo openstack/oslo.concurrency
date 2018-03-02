@@ -10,3 +10,4 @@
    opts
    processutils
    watchdog
+   api/modules
