@@ -575,9 +575,9 @@ def ssh_execute(ssh, cmd, process_input=None,
             # to decode it, or an Unicode string otherwise. Encode to the
             # default encoding (ASCII) because mask_password() decodes from
             # the same encoding.
-            if isinstance(stdout, unicode):
+            if isinstance(stdout, six.text_type):
                 stdout = stdout.encode()
-            if isinstance(stderr, unicode):
+            if isinstance(stderr, six.text_type):
                 stderr = stderr.encode()
         else:
             # fsencode() is the reverse operation of fsdecode()
