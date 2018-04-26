@@ -12,11 +12,11 @@ Team and repository tags
 ==================
 
 .. image:: https://img.shields.io/pypi/v/oslo.concurrency.svg
-    :target: https://pypi.python.org/pypi/oslo.concurrency/
+    :target: https://pypi.org/project/oslo.concurrency/
     :alt: Latest Version
 
 .. image:: https://img.shields.io/pypi/dm/oslo.concurrency.svg
-    :target: https://pypi.python.org/pypi/oslo.concurrency/
+    :target: https://pypi.org/project/oslo.concurrency/
     :alt: Downloads
 
 The oslo.concurrency library has utilities for safely running multi-thread,
