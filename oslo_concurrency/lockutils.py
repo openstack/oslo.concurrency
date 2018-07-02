@@ -348,7 +348,7 @@ def _lock_wrapper(argv):
     lockutils-wrapper
 
     If you run this:
-        lockutils-wrapper python setup.py testr <etc>
+        lockutils-wrapper stestr run <etc>
 
     a temporary directory will be created for all your locks and passed to all
     your tests in an environment variable. The temporary dir will be deleted
