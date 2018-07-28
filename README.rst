@@ -27,4 +27,4 @@ external processes.
 * Documentation: https://docs.openstack.org/oslo.concurrency/latest/
 * Source: https://git.openstack.org/cgit/openstack/oslo.concurrency
 * Bugs: https://bugs.launchpad.net/oslo.concurrency
-* https://docs.openstack.org/releasenotes/oslo.concurrency/
+* Release Notes: https://docs.openstack.org/releasenotes/oslo.concurrency/
