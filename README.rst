@@ -15,10 +15,6 @@ Team and repository tags
     :target: https://pypi.org/project/oslo.concurrency/
     :alt: Latest Version
 
-.. image:: https://img.shields.io/pypi/dm/oslo.concurrency.svg
-    :target: https://pypi.org/project/oslo.concurrency/
-    :alt: Downloads
-
 The oslo.concurrency library has utilities for safely running multi-thread,
 multi-process applications using locking mechanisms and for running
 external processes.
