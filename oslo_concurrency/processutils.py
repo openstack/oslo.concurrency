@@ -386,7 +386,7 @@ def execute(*cmd, **kwargs):
                                    stderr=_PIPE,
                                    close_fds=close_fds,
                                    preexec_fn=on_preexec_fn,
-                                   shell=shell,
+                                   shell=shell,  # nosec:B604
                                    cwd=cwd,
                                    env=env_variables)
 
