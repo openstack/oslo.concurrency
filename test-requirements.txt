@@ -17,4 +17,4 @@ reno>=2.5.0 # Apache-2.0
 eventlet!=0.18.3,!=0.20.1,>=0.18.2 # MIT
 
 # Bandit security code scanner
-bandit>=1.1.0 # Apache-2.0
+bandit>=1.1.0,<1.5.0 # Apache-2.0
