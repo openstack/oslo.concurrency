@@ -7,9 +7,9 @@ Team and repository tags
 
 .. Change things from this point on
 
-==================
+=================
  oslo.concurrency
-==================
+=================
 
 .. image:: https://img.shields.io/pypi/v/oslo.concurrency.svg
     :target: https://pypi.org/project/oslo.concurrency/
