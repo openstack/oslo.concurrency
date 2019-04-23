@@ -174,7 +174,7 @@ class ProcessLimits(object):
     }
 
     def __init__(self, **kw):
-        for limit in self._LIMITS.keys():
+        for limit in self._LIMITS:
             setattr(self, limit, kw.pop(limit, None))
 
         if kw:
@@ -184,7 +184,7 @@ class ProcessLimits(object):
     def prlimit_args(self):
         """Create a list of arguments for the prlimit command line."""
         args = []
-        for limit in self._LIMITS.keys():
+        for limit in self._LIMITS:
             val = getattr(self, limit)
             if val is not None:
                 args.append("%s=%s" % (self._LIMITS[limit], val))

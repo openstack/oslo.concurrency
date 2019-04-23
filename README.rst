@@ -7,9 +7,9 @@ Team and repository tags
 
 .. Change things from this point on
 
-=================
- oslo.concurrency
-=================
+================
+oslo.concurrency
+================
 
 .. image:: https://img.shields.io/pypi/v/oslo.concurrency.svg
     :target: https://pypi.org/project/oslo.concurrency/
@@ -21,6 +21,6 @@ external processes.
 
 * Free software: Apache license
 * Documentation: https://docs.openstack.org/oslo.concurrency/latest/
-* Source: https://git.openstack.org/cgit/openstack/oslo.concurrency
+* Source: https://opendev.org/openstack/oslo.concurrency
 * Bugs: https://bugs.launchpad.net/oslo.concurrency
 * Release Notes: https://docs.openstack.org/releasenotes/oslo.concurrency/
