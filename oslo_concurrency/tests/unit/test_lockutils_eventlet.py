@@ -13,7 +13,6 @@
 #    under the License.
 
 import os
-import shutil
 import tempfile
 
 import eventlet
@@ -28,32 +27,27 @@ class TestFileLocks(test_base.BaseTestCase):
     def test_concurrent_green_lock_succeeds(self):
         """Verify spawn_n greenthreads with two locks run concurrently."""
         tmpdir = tempfile.mkdtemp()
-        try:
-            self.completed = False
+        self.completed = False
 
-            def locka(wait):
-                a = lockutils.InterProcessLock(os.path.join(tmpdir, 'a'))
-                with a:
-                    wait.wait()
-                self.completed = True
+        def locka(wait):
+            a = lockutils.InterProcessLock(os.path.join(tmpdir, 'a'))
+            with a:
+                wait.wait()
+            self.completed = True
 
-            def lockb(wait):
-                b = lockutils.InterProcessLock(os.path.join(tmpdir, 'b'))
-                with b:
-                    wait.wait()
+        def lockb(wait):
+            b = lockutils.InterProcessLock(os.path.join(tmpdir, 'b'))
+            with b:
+                wait.wait()
 
-            wait1 = eventlet.event.Event()
-            wait2 = eventlet.event.Event()
-            pool = greenpool.GreenPool()
-            pool.spawn_n(locka, wait1)
-            pool.spawn_n(lockb, wait2)
-            wait2.send()
-            eventlet.sleep(0)
-            wait1.send()
-            pool.waitall()
+        wait1 = eventlet.event.Event()
+        wait2 = eventlet.event.Event()
+        pool = greenpool.GreenPool()
+        pool.spawn_n(locka, wait1)
+        pool.spawn_n(lockb, wait2)
+        wait2.send()
+        eventlet.sleep(0)
+        wait1.send()
+        pool.waitall()
 
-            self.assertTrue(self.completed)
-
-        finally:
-            if os.path.exists(tmpdir):
-                shutil.rmtree(tmpdir)
+        self.assertTrue(self.completed)

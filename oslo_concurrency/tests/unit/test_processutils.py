@@ -190,18 +190,18 @@ class ProcessExecutionErrorTest(test_base.BaseTestCase):
         stdout = """
         Lo, praise of the prowess of people-kings
         of spear-armed Danes, in days long sped,
-        we have heard, and what honot the athelings won!
+        we have heard, and what honor the athelings won!
         Oft Scyld the Scefing from squadroned foes,
         from many a tribe, the mead-bench tore,
-        awing the earls. Since erse he lay
+        awing the earls. Since erst he lay
         friendless, a foundling, fate repaid him:
-        for he waxed under welkin, in wealth he trove,
+        for he waxed under welkin, in wealth he throve,
         till before him the folk, both far and near,
         who house by the whale-path, heard his mandate,
-        gabe him gits: a good king he!
+        gave him gifts: a good king he!
         To him an heir was afterward born,
         a son in his halls, whom heaven sent
-        to favor the fol, feeling their woe
+        to favor the folk, feeling their woe
         that erst they had lacked an earl for leader
         so long a while; the Lord endowed him,
         the Wielder of Wonder, with world's renown.

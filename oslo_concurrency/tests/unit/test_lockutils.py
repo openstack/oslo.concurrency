@@ -15,7 +15,6 @@
 import collections
 import multiprocessing
 import os
-import shutil
 import signal
 import subprocess
 import sys
@@ -188,65 +187,45 @@ class LockTestCase(test_base.BaseTestCase):
 
     def test_nested_synchronized_external_works(self):
         """We can nest external syncs."""
-        tempdir = tempfile.mkdtemp()
-        try:
-            self.config(lock_path=tempdir, group='oslo_concurrency')
-            sentinel = object()
+        self.config(lock_path=tempfile.mkdtemp(), group='oslo_concurrency')
+        sentinel = object()
 
-            @lockutils.synchronized('testlock1', 'test-', external=True)
-            def outer_lock():
+        @lockutils.synchronized('testlock1', 'test-', external=True)
+        def outer_lock():
 
-                @lockutils.synchronized('testlock2', 'test-', external=True)
-                def inner_lock():
-                    return sentinel
-                return inner_lock()
+            @lockutils.synchronized('testlock2', 'test-', external=True)
+            def inner_lock():
+                return sentinel
+            return inner_lock()
 
-            self.assertEqual(sentinel, outer_lock())
-
-        finally:
-            if os.path.exists(tempdir):
-                shutil.rmtree(tempdir)
+        self.assertEqual(sentinel, outer_lock())
 
     def _do_test_lock_externally(self):
         """We can lock across multiple processes."""
-        handles_dir = tempfile.mkdtemp()
-        try:
-            children = []
-            for n in range(50):
-                queue = multiprocessing.Queue()
-                proc = multiprocessing.Process(
-                    target=lock_files,
-                    args=(handles_dir, queue))
-                proc.start()
-                children.append((proc, queue))
-            for child, queue in children:
-                child.join()
-                count = queue.get(block=False)
-                self.assertEqual(50, count)
-        finally:
-            if os.path.exists(handles_dir):
-                shutil.rmtree(handles_dir, ignore_errors=True)
+        children = []
+        for n in range(50):
+            queue = multiprocessing.Queue()
+            proc = multiprocessing.Process(
+                target=lock_files,
+                args=(tempfile.mkdtemp(), queue))
+            proc.start()
+            children.append((proc, queue))
+        for child, queue in children:
+            child.join()
+            count = queue.get(block=False)
+            self.assertEqual(50, count)
 
     def test_lock_externally(self):
-        lock_dir = tempfile.mkdtemp()
-        self.config(lock_path=lock_dir, group='oslo_concurrency')
+        self.config(lock_path=tempfile.mkdtemp(), group='oslo_concurrency')
 
-        try:
-            self._do_test_lock_externally()
-        finally:
-            if os.path.exists(lock_dir):
-                shutil.rmtree(lock_dir, ignore_errors=True)
+        self._do_test_lock_externally()
 
     def test_lock_externally_lock_dir_not_exist(self):
         lock_dir = tempfile.mkdtemp()
         os.rmdir(lock_dir)
         self.config(lock_path=lock_dir, group='oslo_concurrency')
 
-        try:
-            self._do_test_lock_externally()
-        finally:
-            if os.path.exists(lock_dir):
-                shutil.rmtree(lock_dir, ignore_errors=True)
+        self._do_test_lock_externally()
 
     def test_synchronized_with_prefix(self):
         lock_name = 'mylock'
@@ -264,88 +243,64 @@ class LockTestCase(test_base.BaseTestCase):
         self.assertTrue(bar(lock_dir, lock_pfix, lock_name))
 
     def test_synchronized_without_prefix(self):
-        lock_dir = tempfile.mkdtemp()
-        self.config(lock_path=lock_dir, group='oslo_concurrency')
+        self.config(lock_path=tempfile.mkdtemp(), group='oslo_concurrency')
 
         @lockutils.synchronized('lock', external=True)
         def test_without_prefix():
             # We can't check much
             pass
 
-        try:
-            test_without_prefix()
-        finally:
-            if os.path.exists(lock_dir):
-                shutil.rmtree(lock_dir, ignore_errors=True)
+        test_without_prefix()
 
     def test_synchronized_prefix_without_hypen(self):
-        lock_dir = tempfile.mkdtemp()
-        self.config(lock_path=lock_dir, group='oslo_concurrency')
+        self.config(lock_path=tempfile.mkdtemp(), group='oslo_concurrency')
 
         @lockutils.synchronized('lock', 'hypen', True)
         def test_without_hypen():
             # We can't check much
             pass
 
-        try:
-            test_without_hypen()
-        finally:
-            if os.path.exists(lock_dir):
-                shutil.rmtree(lock_dir, ignore_errors=True)
+        test_without_hypen()
 
     def test_contextlock(self):
-        lock_dir = tempfile.mkdtemp()
-        self.config(lock_path=lock_dir, group='oslo_concurrency')
+        self.config(lock_path=tempfile.mkdtemp(), group='oslo_concurrency')
 
-        try:
-            # Note(flaper87): Lock is not external, which means
-            # a semaphore will be yielded
-            with lockutils.lock("test") as sem:
-                if six.PY2:
-                    self.assertIsInstance(sem, threading._Semaphore)
-                else:
-                    self.assertIsInstance(sem, threading.Semaphore)
+        # Note(flaper87): Lock is not external, which means
+        # a semaphore will be yielded
+        with lockutils.lock("test") as sem:
+            if six.PY2:
+                self.assertIsInstance(sem, threading._Semaphore)
+            else:
+                self.assertIsInstance(sem, threading.Semaphore)
 
-                # NOTE(flaper87): Lock is external so an InterProcessLock
-                # will be yielded.
-                with lockutils.lock("test2", external=True) as lock:
-                    self.assertTrue(lock.exists())
+            # NOTE(flaper87): Lock is external so an InterProcessLock
+            # will be yielded.
+            with lockutils.lock("test2", external=True) as lock:
+                self.assertTrue(lock.exists())
 
-                with lockutils.lock("test1",
-                                    external=True) as lock1:
-                    self.assertIsInstance(lock1,
-                                          lockutils.InterProcessLock)
-        finally:
-            if os.path.exists(lock_dir):
-                shutil.rmtree(lock_dir, ignore_errors=True)
+            with lockutils.lock("test1", external=True) as lock1:
+                self.assertIsInstance(lock1, lockutils.InterProcessLock)
 
     def test_contextlock_unlocks(self):
-        lock_dir = tempfile.mkdtemp()
-        self.config(lock_path=lock_dir, group='oslo_concurrency')
+        self.config(lock_path=tempfile.mkdtemp(), group='oslo_concurrency')
 
-        sem = None
+        with lockutils.lock("test") as sem:
+            if six.PY2:
+                self.assertIsInstance(sem, threading._Semaphore)
+            else:
+                self.assertIsInstance(sem, threading.Semaphore)
 
-        try:
-            with lockutils.lock("test") as sem:
-                if six.PY2:
-                    self.assertIsInstance(sem, threading._Semaphore)
-                else:
-                    self.assertIsInstance(sem, threading.Semaphore)
-
-                with lockutils.lock("test2", external=True) as lock:
-                    self.assertTrue(lock.exists())
-
-                # NOTE(flaper87): Lock should be free
-                with lockutils.lock("test2", external=True) as lock:
-                    self.assertTrue(lock.exists())
+            with lockutils.lock("test2", external=True) as lock:
+                self.assertTrue(lock.exists())
 
             # NOTE(flaper87): Lock should be free
-            # but semaphore should already exist.
-            with lockutils.lock("test") as sem2:
-                self.assertEqual(sem, sem2)
-        finally:
-            if os.path.exists(lock_dir):
-                shutil.rmtree(lock_dir, ignore_errors=True)
+            with lockutils.lock("test2", external=True) as lock:
+                self.assertTrue(lock.exists())
+
+        # NOTE(flaper87): Lock should be free
+        # but semaphore should already exist.
+        with lockutils.lock("test") as sem2:
+            self.assertEqual(sem, sem2)
 
     def _test_remove_lock_external_file(self, lock_dir, use_external=False):
         lock_name = 'mylock'
@@ -361,17 +316,13 @@ class LockTestCase(test_base.BaseTestCase):
         for ent in os.listdir(lock_dir):
             self.assertRaises(OSError, ent.startswith, lock_pfix)
 
-        if os.path.exists(lock_dir):
-            shutil.rmtree(lock_dir, ignore_errors=True)
-
     def test_remove_lock_external_file(self):
         lock_dir = tempfile.mkdtemp()
         self.config(lock_path=lock_dir, group='oslo_concurrency')
         self._test_remove_lock_external_file(lock_dir)
 
     def test_remove_lock_external_file_lock_path(self):
-        lock_dir = tempfile.mkdtemp()
-        self._test_remove_lock_external_file(lock_dir,
+        self._test_remove_lock_external_file(tempfile.mkdtemp(),
                                              use_external=True)
 
     def test_no_slash_in_b64(self):
