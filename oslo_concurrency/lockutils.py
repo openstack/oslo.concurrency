@@ -281,6 +281,29 @@ def lock(name, lock_file_prefix=None, external=False, lock_path=None,
                 LOG.debug('Releasing lock "%(lock)s"', {'lock': name})
 
 
+def lock_with_prefix(lock_file_prefix):
+    """Partial object generator for the lock context manager.
+
+    Redefine lock in each project like so::
+
+        (in nova/utils.py)
+        from oslo_concurrency import lockutils
+
+        lock = lockutils.lock_with_prefix('nova-')
+
+
+        (in nova/foo.py)
+        from nova import utils
+
+        with utils.lock('mylock'):
+           ...
+
+    The lock_file_prefix argument is used to provide lock files on disk with a
+    meaningful prefix.
+    """
+    return functools.partial(lock, lock_file_prefix=lock_file_prefix)
+
+
 def synchronized(name, lock_file_prefix=None, external=False, lock_path=None,
                  semaphores=None, delay=0.01, fair=False):
     """Synchronization decorator.
