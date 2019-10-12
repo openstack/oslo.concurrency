@@ -43,7 +43,6 @@ extensions = [
 repository_name = 'openstack/oslo.config'
 bug_project = 'oslo.config'
 bug_tag = ''
-html_last_updated_fmt = '%Y-%m-%d %H:%M'
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -58,7 +57,6 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'oslo.concurrency Release Notes'
 copyright = u'2016, oslo.concurrency Developers'
 
 # Release notes do not need a version in the title, they span
@@ -193,17 +191,6 @@ htmlhelp_basename = 'oslo.concurrencyReleaseNotesDoc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
-
-latex_elements = {
-    # The paper size ('letterpaper' or 'a4paper').
-    # 'papersize': 'letterpaper',
-
-    # The font size ('10pt', '11pt' or '12pt').
-    # 'pointsize': '10pt',
-
-    # Additional stuff for the LaTeX preamble.
-    # 'preamble': '',
-}
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title,
