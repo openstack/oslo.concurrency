@@ -10,6 +10,7 @@ external processes.
    :maxdepth: 1
 
    install/index
+   admin/index
    user/index
    configuration/index
    contributor/index
