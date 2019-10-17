@@ -32,7 +32,6 @@ bug_tag = ''
 master_doc = 'index'
 
 # General information about the project.
-project = u'oslo.concurrency'
 copyright = u'2014, OpenStack Foundation'
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
