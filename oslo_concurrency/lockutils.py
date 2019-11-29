@@ -289,7 +289,9 @@ def lock_with_prefix(lock_file_prefix):
         (in nova/utils.py)
         from oslo_concurrency import lockutils
 
-        lock = lockutils.lock_with_prefix('nova-')
+        _prefix = 'nova'
+        lock = lockutils.lock_with_prefix(_prefix)
+        lock_cleanup = lockutils.remove_external_lock_file_with_prefix(_prefix)
 
 
         (in nova/foo.py)
@@ -298,8 +300,14 @@ def lock_with_prefix(lock_file_prefix):
         with utils.lock('mylock'):
            ...
 
-    The lock_file_prefix argument is used to provide lock files on disk with a
-    meaningful prefix.
+    Eventually clean up with::
+
+        lock_cleanup('mylock')
+
+    :param lock_file_prefix: A string used to provide lock files on disk with a
+        meaningful prefix. Will be separated from the lock name with a hyphen,
+        which may optionally be included in the lock_file_prefix (e.g.
+        ``'nova'`` and ``'nova-'`` are equivalent).
     """
     return functools.partial(lock, lock_file_prefix=lock_file_prefix)
 
@@ -373,7 +381,9 @@ def synchronized_with_prefix(lock_file_prefix):
         (in nova/utils.py)
         from oslo_concurrency import lockutils
 
-        synchronized = lockutils.synchronized_with_prefix('nova-')
+        _prefix = 'nova'
+        synchronized = lockutils.synchronized_with_prefix(_prefix)
+        lock_cleanup = lockutils.remove_external_lock_file_with_prefix(_prefix)
 
 
         (in nova/foo.py)
@@ -383,8 +393,14 @@ def synchronized_with_prefix(lock_file_prefix):
         def bar(self, *args):
            ...
 
-    The lock_file_prefix argument is used to provide lock files on disk with a
-    meaningful prefix.
+    Eventually clean up with::
+
+        lock_cleanup('mylock')
+
+    :param lock_file_prefix: A string used to provide lock files on disk with a
+        meaningful prefix. Will be separated from the lock name with a hyphen,
+        which may optionally be included in the lock_file_prefix (e.g.
+        ``'nova'`` and ``'nova-'`` are equivalent).
     """
 
     return functools.partial(synchronized, lock_file_prefix=lock_file_prefix)
@@ -398,18 +414,25 @@ def remove_external_lock_file_with_prefix(lock_file_prefix):
         (in nova/utils.py)
         from oslo_concurrency import lockutils
 
-        synchronized = lockutils.synchronized_with_prefix('nova-')
-        synchronized_remove = lockutils.remove_external_lock_file_with_prefix(
-            'nova-')
+        _prefix = 'nova'
+        synchronized = lockutils.synchronized_with_prefix(_prefix)
+        lock = lockutils.lock_with_prefix(_prefix)
+        lock_cleanup = lockutils.remove_external_lock_file_with_prefix(_prefix)
 
         (in nova/foo.py)
         from nova import utils
 
         @utils.synchronized('mylock')
         def bar(self, *args):
-           ...
+            ...
 
-        <eventually call synchronized_remove('mylock') to cleanup>
+        def baz(self, *args):
+            ...
+            with utils.lock('mylock'):
+                ...
+            ...
+
+        <eventually call lock_cleanup('mylock') to clean up>
 
     The lock_file_prefix argument is used to provide lock files on disk with a
     meaningful prefix.
