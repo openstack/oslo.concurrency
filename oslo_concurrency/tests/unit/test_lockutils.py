@@ -227,6 +227,15 @@ class LockTestCase(test_base.BaseTestCase):
 
         self._do_test_lock_externally()
 
+    def test_lock_with_prefix(self):
+        # TODO(efried): Embetter this test
+        self.config(lock_path=tempfile.mkdtemp(), group='oslo_concurrency')
+        foo = lockutils.lock_with_prefix('mypfix-')
+
+        with foo('mylock', external=True):
+            # We can't check much
+            pass
+
     def test_synchronized_with_prefix(self):
         lock_name = 'mylock'
         lock_pfix = 'mypfix-'
