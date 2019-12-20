@@ -22,6 +22,7 @@ import tempfile
 import threading
 import time
 
+import mock
 from oslo_config import cfg
 from oslotest import base as test_base
 import six
@@ -311,28 +312,34 @@ class LockTestCase(test_base.BaseTestCase):
         with lockutils.lock("test") as sem2:
             self.assertEqual(sem, sem2)
 
-    def _test_remove_lock_external_file(self, lock_dir, use_external=False):
-        lock_name = 'mylock'
-        lock_pfix = 'mypfix-remove-lock-test-'
+    @mock.patch('logging.Logger.info')
+    @mock.patch('os.remove')
+    @mock.patch('oslo_concurrency.lockutils._get_lock_path')
+    def test_remove_lock_external_file_exists(self, path_mock, remove_mock,
+                                              log_mock):
+        lockutils.remove_external_lock_file(mock.sentinel.name,
+                                            mock.sentinel.prefix,
+                                            mock.sentinel.lock_path)
 
-        if use_external:
-            lock_path = lock_dir
-        else:
-            lock_path = None
+        path_mock.assert_called_once_with(mock.sentinel.name,
+                                          mock.sentinel.prefix,
+                                          mock.sentinel.lock_path)
+        remove_mock.assert_called_once_with(path_mock.return_value)
+        log_mock.assert_not_called()
 
-        lockutils.remove_external_lock_file(lock_name, lock_pfix, lock_path)
-
-        for ent in os.listdir(lock_dir):
-            self.assertRaises(OSError, ent.startswith, lock_pfix)
-
-    def test_remove_lock_external_file(self):
-        lock_dir = tempfile.mkdtemp()
-        self.config(lock_path=lock_dir, group='oslo_concurrency')
-        self._test_remove_lock_external_file(lock_dir)
-
-    def test_remove_lock_external_file_lock_path(self):
-        self._test_remove_lock_external_file(tempfile.mkdtemp(),
-                                             use_external=True)
+    @mock.patch('logging.Logger.info')
+    @mock.patch('os.remove', side_effect=OSError)
+    @mock.patch('oslo_concurrency.lockutils._get_lock_path')
+    def test_remove_lock_external_file_doesnt_exists(self, path_mock,
+                                                     remove_mock, log_mock):
+        lockutils.remove_external_lock_file(mock.sentinel.name,
+                                            mock.sentinel.prefix,
+                                            mock.sentinel.lock_path)
+        path_mock.assert_called_once_with(mock.sentinel.name,
+                                          mock.sentinel.prefix,
+                                          mock.sentinel.lock_path)
+        remove_mock.assert_called_once_with(path_mock.return_value)
+        log_mock.assert_called()
 
     def test_no_slash_in_b64(self):
         # base64(sha1(foobar)) has a slash in it
