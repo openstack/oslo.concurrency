@@ -21,8 +21,8 @@ import sys
 import tempfile
 import threading
 import time
+from unittest import mock
 
-import mock
 from oslo_config import cfg
 from oslotest import base as test_base
 import six

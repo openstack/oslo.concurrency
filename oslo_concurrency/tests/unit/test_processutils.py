@@ -26,9 +26,9 @@ import stat
 import subprocess
 import sys
 import tempfile
+from unittest import mock
 
 import fixtures
-import mock
 from oslotest import base as test_base
 import six
 
