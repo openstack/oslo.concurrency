@@ -16,6 +16,14 @@ external processes.
    contributor/index
    reference/index
 
+
+Release Notes
+=============
+
+Read also the `oslo.concurrency Release Notes
+<https://docs.openstack.org/releasenotes/oslo.concurrency/>`_.
+
+
 Indices and tables
 ==================
 
