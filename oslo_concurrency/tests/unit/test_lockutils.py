@@ -25,7 +25,6 @@ from unittest import mock
 
 from oslo_config import cfg
 from oslotest import base as test_base
-import six
 
 from oslo_concurrency.fixture import lockutils as fixtures
 from oslo_concurrency import lockutils
@@ -278,10 +277,7 @@ class LockTestCase(test_base.BaseTestCase):
         # Note(flaper87): Lock is not external, which means
         # a semaphore will be yielded
         with lockutils.lock("test") as sem:
-            if six.PY2:
-                self.assertIsInstance(sem, threading._Semaphore)
-            else:
-                self.assertIsInstance(sem, threading.Semaphore)
+            self.assertIsInstance(sem, threading.Semaphore)
 
             # NOTE(flaper87): Lock is external so an InterProcessLock
             # will be yielded.
@@ -295,10 +291,7 @@ class LockTestCase(test_base.BaseTestCase):
         self.config(lock_path=tempfile.mkdtemp(), group='oslo_concurrency')
 
         with lockutils.lock("test") as sem:
-            if six.PY2:
-                self.assertIsInstance(sem, threading._Semaphore)
-            else:
-                self.assertIsInstance(sem, threading.Semaphore)
+            self.assertIsInstance(sem, threading.Semaphore)
 
             with lockutils.lock("test2", external=True) as lock:
                 self.assertTrue(lock.exists())

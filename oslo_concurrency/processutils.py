@@ -32,7 +32,6 @@ from oslo_utils import encodeutils
 from oslo_utils import importutils
 from oslo_utils import strutils
 from oslo_utils import timeutils
-import six
 
 from oslo_concurrency._i18n import _
 
@@ -329,7 +328,7 @@ def execute(*cmd, **kwargs):
     if kwargs:
         raise UnknownArgumentError(_('Got unknown keyword args: %r') % kwargs)
 
-    if isinstance(log_errors, six.integer_types):
+    if isinstance(log_errors, int):
         log_errors = LogErrors(log_errors)
     if not isinstance(log_errors, LogErrors):
         raise InvalidArgumentError(_('Got invalid arg log_errors: %r') %
@@ -413,16 +412,15 @@ def execute(*cmd, **kwargs):
 
             if not ignore_exit_code and _returncode not in check_exit_code:
                 (stdout, stderr) = result
-                if six.PY3:
-                    stdout = os.fsdecode(stdout)
-                    stderr = os.fsdecode(stderr)
+                stdout = os.fsdecode(stdout)
+                stderr = os.fsdecode(stderr)
                 sanitized_stdout = strutils.mask_password(stdout)
                 sanitized_stderr = strutils.mask_password(stderr)
                 raise ProcessExecutionError(exit_code=_returncode,
                                             stdout=sanitized_stdout,
                                             stderr=sanitized_stderr,
                                             cmd=sanitized_cmd)
-            if six.PY3 and not binary and result is not None:
+            if not binary and result is not None:
                 (stdout, stderr) = result
                 # Decode from the locale using using the surrogateescape error
                 # handler (decoding cannot fail)
@@ -491,7 +489,7 @@ def trycmd(*args, **kwargs):
         out, err = execute(*args, **kwargs)
         failed = False
     except ProcessExecutionError as exn:
-        out, err = '', six.text_type(exn)
+        out, err = '', str(exn)
         failed = True
 
     if not failed and discard_warnings and err:
@@ -543,12 +541,11 @@ def ssh_execute(ssh, cmd, process_input=None,
 
     exit_status = channel.recv_exit_status()
 
-    if six.PY3:
-        # Decode from the locale using using the surrogateescape error handler
-        # (decoding cannot fail). Decode even if binary is True because
-        # mask_password() requires Unicode on Python 3
-        stdout = os.fsdecode(stdout)
-        stderr = os.fsdecode(stderr)
+    # Decode from the locale using using the surrogateescape error handler
+    # (decoding cannot fail). Decode even if binary is True because
+    # mask_password() requires Unicode on Python 3
+    stdout = os.fsdecode(stdout)
+    stderr = os.fsdecode(stderr)
 
     if sanitize_stdout:
         stdout = strutils.mask_password(stdout)
@@ -570,19 +567,9 @@ def ssh_execute(ssh, cmd, process_input=None,
                                         cmd=sanitized_cmd)
 
     if binary:
-        if six.PY2:
-            # On Python 2, stdout is a bytes string if mask_password() failed
-            # to decode it, or an Unicode string otherwise. Encode to the
-            # default encoding (ASCII) because mask_password() decodes from
-            # the same encoding.
-            if isinstance(stdout, six.text_type):
-                stdout = stdout.encode()
-            if isinstance(stderr, six.text_type):
-                stderr = stderr.encode()
-        else:
-            # fsencode() is the reverse operation of fsdecode()
-            stdout = os.fsencode(stdout)
-            stderr = os.fsencode(stderr)
+        # fsencode() is the reverse operation of fsdecode()
+        stdout = os.fsencode(stdout)
+        stderr = os.fsencode(stderr)
 
     return (stdout, stderr)
 
