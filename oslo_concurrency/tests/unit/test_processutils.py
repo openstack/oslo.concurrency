@@ -16,6 +16,7 @@
 from __future__ import print_function
 
 import errno
+import io
 import logging
 import multiprocessing
 import os
@@ -30,7 +31,6 @@ from unittest import mock
 
 import fixtures
 from oslotest import base as test_base
-import six
 
 from oslo_concurrency import processutils
 
@@ -112,17 +112,11 @@ class UtilsTest(test_base.BaseTestCase):
 
         processutils.execute(TRUE_UTILITY)
 
-        if six.PY2:
-            self.assertRaises(processutils.InvalidArgumentError,
-                              processutils.execute,
-                              TRUE_UTILITY,
-                              preexec_fn=preexec_fn)
-        else:
-            try:
-                processutils.execute(TRUE_UTILITY, preexec_fn=preexec_fn)
-            except Exception as e:
-                if type(e).__name__ != 'SubprocessError':
-                    raise
+        try:
+            processutils.execute(TRUE_UTILITY, preexec_fn=preexec_fn)
+        except Exception as e:
+            if type(e).__name__ != 'SubprocessError':
+                raise
 
     @mock.patch.object(os, 'name', 'nt')
     @mock.patch.object(processutils.subprocess, "Popen")
@@ -168,23 +162,23 @@ class ProcessExecutionErrorTest(test_base.BaseTestCase):
 
     def test_defaults(self):
         err = processutils.ProcessExecutionError()
-        self.assertIn('None\n', six.text_type(err))
-        self.assertIn('code: -\n', six.text_type(err))
+        self.assertIn('None\n', str(err))
+        self.assertIn('code: -\n', str(err))
 
     def test_with_description(self):
         description = 'The Narwhal Bacons at Midnight'
         err = processutils.ProcessExecutionError(description=description)
-        self.assertIn(description, six.text_type(err))
+        self.assertIn(description, str(err))
 
     def test_with_exit_code(self):
         exit_code = 0
         err = processutils.ProcessExecutionError(exit_code=exit_code)
-        self.assertIn(str(exit_code), six.text_type(err))
+        self.assertIn(str(exit_code), str(err))
 
     def test_with_cmd(self):
         cmd = 'telinit'
         err = processutils.ProcessExecutionError(cmd=cmd)
-        self.assertIn(cmd, six.text_type(err))
+        self.assertIn(cmd, str(err))
 
     def test_with_stdout(self):
         stdout = """
@@ -207,13 +201,13 @@ class ProcessExecutionErrorTest(test_base.BaseTestCase):
         the Wielder of Wonder, with world's renown.
         """.strip()
         err = processutils.ProcessExecutionError(stdout=stdout)
-        print(six.text_type(err))
-        self.assertIn('people-kings', six.text_type(err))
+        print(str(err))
+        self.assertIn('people-kings', str(err))
 
     def test_with_stderr(self):
         stderr = 'Cottonian library'
         err = processutils.ProcessExecutionError(stderr=stderr)
-        self.assertIn(stderr, six.text_type(err))
+        self.assertIn(stderr, str(err))
 
     def test_retry_on_failure(self):
         fd, tmpfilename = tempfile.mkstemp()
@@ -446,8 +440,8 @@ grep foo
                                 'something')
 
         self.assertEqual(38, err.exit_code)
-        self.assertIsInstance(err.stdout, six.text_type)
-        self.assertIsInstance(err.stderr, six.text_type)
+        self.assertIsInstance(err.stdout, str)
+        self.assertIsInstance(err.stderr, str)
         self.assertIn('onstdout --password="***"', err.stdout)
         self.assertIn('onstderr --password="***"', err.stderr)
         self.assertEqual(' '.join([tmpfilename,
@@ -458,20 +452,12 @@ grep foo
 
     def execute_undecodable_bytes(self, out_bytes, err_bytes,
                                   exitcode=0, binary=False):
-        if six.PY3:
-            code = ';'.join(('import sys',
-                             'sys.stdout.buffer.write(%a)' % out_bytes,
-                             'sys.stdout.flush()',
-                             'sys.stderr.buffer.write(%a)' % err_bytes,
-                             'sys.stderr.flush()',
-                             'sys.exit(%s)' % exitcode))
-        else:
-            code = ';'.join(('import sys',
-                             'sys.stdout.write(%r)' % out_bytes,
-                             'sys.stdout.flush()',
-                             'sys.stderr.write(%r)' % err_bytes,
-                             'sys.stderr.flush()',
-                             'sys.exit(%s)' % exitcode))
+        code = ';'.join(('import sys',
+                         'sys.stdout.buffer.write(%a)' % out_bytes,
+                         'sys.stdout.flush()',
+                         'sys.stderr.buffer.write(%a)' % err_bytes,
+                         'sys.stderr.flush()',
+                         'sys.exit(%s)' % exitcode))
 
         return processutils.execute(sys.executable, '-c', code, binary=binary)
 
@@ -480,7 +466,7 @@ grep foo
         err_bytes = b'err: ' + UNDECODABLE_BYTES
         out, err = self.execute_undecodable_bytes(out_bytes, err_bytes,
                                                   binary=binary)
-        if six.PY3 and not binary:
+        if not binary:
             self.assertEqual(os.fsdecode(out_bytes), out)
             self.assertEqual(os.fsdecode(err_bytes), err)
         else:
@@ -505,16 +491,8 @@ grep foo
         err = exc.stderr
         out_bytes = b'out: password="***" ' + UNDECODABLE_BYTES
         err_bytes = b'err: password="***" ' + UNDECODABLE_BYTES
-        if six.PY3:
-            # On Python 3, stdout and stderr attributes of
-            # ProcessExecutionError must always be Unicode
-            self.assertEqual(os.fsdecode(out_bytes), out)
-            self.assertEqual(os.fsdecode(err_bytes), err)
-        else:
-            # On Python 2, stdout and stderr attributes of
-            # ProcessExecutionError must always be bytes
-            self.assertEqual(out_bytes, out)
-            self.assertEqual(err_bytes, err)
+        self.assertEqual(os.fsdecode(out_bytes), out)
+        self.assertEqual(os.fsdecode(err_bytes), err)
 
     def test_undecodable_bytes_error(self):
         self.check_undecodable_bytes_error(False)
@@ -642,7 +620,7 @@ class FakeSshChannel(object):
         return self.rc
 
 
-class FakeSshStream(six.BytesIO):
+class FakeSshStream(io.BytesIO):
     def setup_channel(self, rc):
         self.channel = FakeSshChannel(rc)
 
@@ -658,9 +636,9 @@ class FakeSshConnection(object):
             raise socket.timeout()
         stdout = FakeSshStream(self.out)
         stdout.setup_channel(self.rc)
-        return (six.BytesIO(),
+        return (io.BytesIO(),
                 stdout,
-                six.BytesIO(self.err))
+                io.BytesIO(self.err))
 
 
 class SshExecuteTestCase(test_base.BaseTestCase):
@@ -684,8 +662,8 @@ class SshExecuteTestCase(test_base.BaseTestCase):
         out, err = processutils.ssh_execute(FakeSshConnection(0), 'ls')
         self.assertEqual('stdout', out)
         self.assertEqual('stderr', err)
-        self.assertIsInstance(out, six.text_type)
-        self.assertIsInstance(err, six.text_type)
+        self.assertIsInstance(out, str)
+        self.assertIsInstance(err, str)
 
     def test_binary(self):
         o, e = processutils.ssh_execute(FakeSshConnection(0), 'ls',
@@ -701,7 +679,7 @@ class SshExecuteTestCase(test_base.BaseTestCase):
         conn = FakeSshConnection(0, out=out_bytes, err=err_bytes)
 
         out, err = processutils.ssh_execute(conn, 'ls', binary=binary)
-        if six.PY3 and not binary:
+        if not binary:
             self.assertEqual(os.fsdecode(out_bytes), out)
             self.assertEqual(os.fsdecode(err_bytes), err)
         else:
@@ -729,16 +707,8 @@ class SshExecuteTestCase(test_base.BaseTestCase):
 
         out = exc.stdout
         err = exc.stderr
-        if six.PY3:
-            # On Python 3, stdout and stderr attributes of
-            # ProcessExecutionError must always be Unicode
-            self.assertEqual(os.fsdecode(out_bytes), out)
-            self.assertEqual(os.fsdecode(err_bytes), err)
-        else:
-            # On Python 2, stdout and stderr attributes of
-            # ProcessExecutionError must always be bytes
-            self.assertEqual(out_bytes, out)
-            self.assertEqual(err_bytes, err)
+        self.assertEqual(os.fsdecode(out_bytes), out)
+        self.assertEqual(os.fsdecode(err_bytes), err)
 
     def test_undecodable_bytes_error(self):
         self.check_undecodable_bytes_error(False)
@@ -752,7 +722,7 @@ class SshExecuteTestCase(test_base.BaseTestCase):
 
     def _test_compromising_ssh(self, rc, check):
         fixture = self.useFixture(fixtures.FakeLogger(level=logging.DEBUG))
-        fake_stdin = six.BytesIO()
+        fake_stdin = io.BytesIO()
 
         fake_stdout = mock.Mock()
         fake_stdout.channel.recv_exit_status.return_value = rc

@@ -28,7 +28,6 @@ import fasteners
 from oslo_config import cfg
 from oslo_utils import reflection
 from oslo_utils import timeutils
-import six
 
 from oslo_concurrency._i18n import _
 
@@ -342,7 +341,7 @@ def synchronized(name, lock_file_prefix=None, external=False, lock_path=None,
 
     def wrap(f):
 
-        @six.wraps(f)
+        @functools.wraps(f)
         def inner(*args, **kwargs):
             t1 = timeutils.now()
             t2 = None
