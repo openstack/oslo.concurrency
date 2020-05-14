@@ -24,9 +24,9 @@ extensions = [
 ]
 
 # openstackdocstheme options
-repository_name = 'openstack/oslo.concurrency'
-bug_project = 'oslo.concurrency'
-bug_tag = ''
+openstackdocs_repo_name = 'openstack/oslo.concurrency'
+openstackdocs_bug_project = 'oslo.concurrency'
+openstackdocs_bug_tag = ''
 
 # The master toctree document.
 master_doc = 'index'
