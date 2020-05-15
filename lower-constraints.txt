@@ -11,19 +11,16 @@ eventlet==0.18.2
 extras==1.0.0
 fasteners==0.7.0
 fixtures==3.0.0
-flake8==2.5.5
 futures==3.0.0;python_version=='2.7' or python_version=='2.6' # BSD
 gitdb==0.6.4
 GitPython==1.0.1
 greenlet==0.4.10
-hacking==0.12.0
 imagesize==0.7.1
 iso8601==0.1.11
 Jinja2==2.10
 keystoneauth1==3.4.0
 linecache2==1.0.0
 MarkupSafe==1.0
-mccabe==0.2.1
 monotonic==0.6
 mox3==0.20.0
 netaddr==0.7.18
@@ -35,8 +32,6 @@ oslo.i18n==3.15.3
 oslo.utils==3.33.0
 oslotest==3.2.0
 pbr==2.0.0
-pep8==1.5.7
-pyflakes==0.8.1
 Pygments==2.2.0
 pyparsing==2.1.0
 python-mimeparse==1.6.0
