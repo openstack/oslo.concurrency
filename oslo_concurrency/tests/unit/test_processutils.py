@@ -25,6 +25,7 @@ import stat
 import subprocess
 import sys
 import tempfile
+import time
 from unittest import mock
 
 import fixtures
@@ -87,7 +88,7 @@ class UtilsTest(test_base.BaseTestCase):
         on_execute_callback = mock.Mock()
         on_completion_callback = mock.Mock()
 
-        def fake_communicate(*args):
+        def fake_communicate(*args, timeout=None):
             raise IOError("Broken pipe")
 
         mock_comm.side_effect = fake_communicate
@@ -145,9 +146,9 @@ class UtilsTest(test_base.BaseTestCase):
 
         if use_eventlet:
             mock_tpool.execute.assert_called_once_with(
-                mock_comm, fake_pinput)
+                mock_comm, fake_pinput, timeout=None)
         else:
-            mock_comm.assert_called_once_with(fake_pinput)
+            mock_comm.assert_called_once_with(fake_pinput, timeout=None)
 
     def test_windows_execute_without_eventlet(self):
         self._test_windows_execute()
@@ -512,6 +513,19 @@ grep foo
         self.assertEqual('my cmd', exc.cmd)
         self.assertEqual('my description', exc.description)
         self.assertEqual(str(exc), exc_message)
+
+    def test_timeout(self):
+        start = time.time()
+        # FIXME(dtantsur): I'm not sure what fancy mocking is happening in unit
+        # tests here, but I cannot check for a more precise exception because
+        # subprocess.TimeoutException != subprocess.TimeoutException.
+        # Checking the error message instead.
+        self.assertRaisesRegex(Exception,
+                               'timed out after 1 seconds',
+                               processutils.execute,
+                               '/usr/bin/env', 'sh', '-c', 'sleep 10',
+                               timeout=1)
+        self.assertLess(time.time(), start + 5)
 
 
 class ProcessExecutionErrorLoggingTest(test_base.BaseTestCase):

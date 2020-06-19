@@ -265,11 +265,16 @@ def execute(*cmd, **kwargs):
                             prlimits. If this is not set it will default to use
                             sys.executable.
     :type python_exec:      string
+    :param timeout:         Timeout (in seconds) to wait for the process
+                            termination. If timeout is reached,
+                            :class:`subprocess.TimeoutExpired` is raised.
+    :type timeout:          int
     :returns:               (stdout, stderr) from process execution
     :raises:                :class:`UnknownArgumentError` on
                             receiving unknown arguments
     :raises:                :class:`ProcessExecutionError`
     :raises:                :class:`OSError`
+    :raises:                :class:`subprocess.TimeoutExpired`
 
     The *prlimit* parameter can be used to set resource limits on the child
     process.  If this parameter is used, the child process will be spawned by a
@@ -318,6 +323,7 @@ def execute(*cmd, **kwargs):
     preexec_fn = kwargs.pop('preexec_fn', None)
     prlimit = kwargs.pop('prlimit', None)
     python_exec = kwargs.pop('python_exec', sys.executable)
+    timeout = kwargs.pop('timeout', None)
 
     if isinstance(check_exit_code, bool):
         ignore_exit_code = not check_exit_code
@@ -398,14 +404,20 @@ def execute(*cmd, **kwargs):
                 # we have to wrap this call using tpool.
                 if eventlet_patched and os.name == 'nt':
                     result = tpool.execute(obj.communicate,
-                                           process_input)
+                                           process_input,
+                                           timeout=timeout)
                 else:
-                    result = obj.communicate(process_input)
+                    result = obj.communicate(process_input,
+                                             timeout=timeout)
 
                 obj.stdin.close()  # pylint: disable=E1101
                 _returncode = obj.returncode  # pylint: disable=E1101
                 LOG.log(loglevel, 'CMD "%s" returned: %s in %0.3fs',
                         sanitized_cmd, _returncode, watch.elapsed())
+            except subprocess.TimeoutExpired:
+                LOG.log(loglevel, 'CMD "%s" reached timeout in %0.3fs',
+                        sanitized_cmd, watch.elapsed())
+                raise
             finally:
                 if on_completion:
                     on_completion(obj)

@@ -1,0 +1,5 @@
+---
+features:
+  - |
+    Adds a new ``timeout`` argument to ``processutils.execute``. If set,
+    the process will be aborted if it runs more than ``timeout`` seconds.
