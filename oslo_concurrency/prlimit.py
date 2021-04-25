@@ -16,6 +16,7 @@
 import argparse
 import os
 import resource
+import shutil
 import sys
 
 USAGE_PROGRAM = ('%s -m oslo_concurrency.prlimit'
@@ -74,12 +75,7 @@ def main():
     if not os.path.isabs(program):
         # program uses a relative path: try to find the absolute path
         # to the executable
-        if sys.version_info >= (3, 3):
-            import shutil
-            program_abs = shutil.which(program)
-        else:
-            import distutils.spawn
-            program_abs = distutils.spawn.find_executable(program)
+        program_abs = shutil.which(program)
         if program_abs:
             program = program_abs
 
