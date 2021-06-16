@@ -186,6 +186,13 @@ class LockTestCase(test_base.BaseTestCase):
                 pass
         self.assertRaises(NotImplementedError, do_test)
 
+    def test_fair_lock_with_nonblocking(self):
+        def do_test():
+            with lockutils.lock('testlock', 'test-', fair=True,
+                                blocking=False):
+                pass
+        self.assertRaises(NotImplementedError, do_test)
+
     def test_nested_synchronized_external_works(self):
         """We can nest external syncs."""
         self.config(lock_path=tempfile.mkdtemp(), group='oslo_concurrency')
@@ -430,6 +437,35 @@ class FileBasedLockingTestCase(test_base.BaseTestCase):
                 time.sleep(.5)
                 os._exit(0)
 
+    def test_interprocess_nonblocking_external_lock(self):
+        """Check that we're not actually blocking between processes."""
+
+        nb_calls = multiprocessing.Value('i', 0)
+
+        @lockutils.synchronized('foo', blocking=False, external=True,
+                                lock_path=self.lock_dir)
+        def foo(param):
+            """Simulate a long-running operation in a process."""
+            param.value += 1
+            time.sleep(.5)
+
+        def other(param):
+            foo(param)
+
+        process = multiprocessing.Process(target=other, args=(nb_calls, ))
+        process.start()
+        # Make sure the other process grabs the lock
+        start = time.time()
+        while not os.path.exists(os.path.join(self.lock_dir, 'foo')):
+            if time.time() - start > 5:
+                self.fail('Timed out waiting for process to grab lock')
+            time.sleep(0)
+        process1 = multiprocessing.Process(target=other, args=(nb_calls, ))
+        process1.start()
+        process1.join()
+        process.join()
+        self.assertEqual(1, nb_calls.value)
+
     def test_interthread_external_lock(self):
         call_list = []
 
@@ -464,6 +500,62 @@ class FileBasedLockingTestCase(test_base.BaseTestCase):
         thread1.join()
         thread.join()
         self.assertEqual(['other', 'other', 'main', 'main'], call_list)
+
+    def test_interthread_nonblocking_external_lock(self):
+        call_list = []
+
+        @lockutils.synchronized('foo', external=True, blocking=False,
+                                lock_path=self.lock_dir)
+        def foo(param):
+            """Simulate a long-running threaded operation."""
+            call_list.append(param)
+            time.sleep(.5)
+            call_list.append(param)
+
+        def other(param):
+            foo(param)
+
+        thread = threading.Thread(target=other, args=('other',))
+        thread.start()
+        # Make sure the other thread grabs the lock
+        start = time.time()
+        while not os.path.exists(os.path.join(self.lock_dir, 'foo')):
+            if time.time() - start > 5:
+                self.fail('Timed out waiting for thread to grab lock')
+            time.sleep(0)
+        thread1 = threading.Thread(target=other, args=('main',))
+        thread1.start()
+        thread1.join()
+        thread.join()
+        self.assertEqual(['other', 'other'], call_list)
+
+    def test_interthread_nonblocking_internal_lock(self):
+        call_list = []
+
+        @lockutils.synchronized('foo', blocking=False,
+                                lock_path=self.lock_dir)
+        def foo(param):
+            # Simulate a long-running threaded operation.
+            call_list.append(param)
+            time.sleep(.5)
+            call_list.append(param)
+
+        def other(param):
+            foo(param)
+
+        thread = threading.Thread(target=other, args=('other',))
+        thread.start()
+        # Make sure the other thread grabs the lock
+        start = time.time()
+        while not call_list:
+            if time.time() - start > 5:
+                self.fail('Timed out waiting for thread to grab lock')
+            time.sleep(0)
+        thread1 = threading.Thread(target=other, args=('main',))
+        thread1.start()
+        thread1.join()
+        thread.join()
+        self.assertEqual(['other', 'other'], call_list)
 
     def test_non_destructive(self):
         lock_file = os.path.join(self.lock_dir, 'not-destroyed')
