@@ -180,7 +180,7 @@ def _get_lock_path(name, lock_file_prefix, lock_path=None):
     local_lock_path = lock_path or CONF.oslo_concurrency.lock_path
 
     if not local_lock_path:
-        raise cfg.RequiredOptError('lock_path')
+        raise cfg.RequiredOptError('lock_path', 'oslo_concurrency')
 
     return os.path.join(local_lock_path, name)
 
