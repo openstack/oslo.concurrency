@@ -269,8 +269,8 @@ def execute(*cmd, **kwargs):
                             below for a detailed description.
     :type prlimit:          :class:`ProcessLimits`
     :param python_exec:     The python executable to use for enforcing
-                            prlimits. If this is not set it will default to use
-                            sys.executable.
+                            prlimits. If this is not set or is None, it will
+                            default to use sys.executable.
     :type python_exec:      string
     :param timeout:         Timeout (in seconds) to wait for the process
                             termination. If timeout is reached,
@@ -329,7 +329,7 @@ def execute(*cmd, **kwargs):
     on_completion = kwargs.pop('on_completion', None)
     preexec_fn = kwargs.pop('preexec_fn', None)
     prlimit = kwargs.pop('prlimit', None)
-    python_exec = kwargs.pop('python_exec', sys.executable)
+    python_exec = kwargs.pop('python_exec', None) or sys.executable
     timeout = kwargs.pop('timeout', None)
 
     if isinstance(check_exit_code, bool):
