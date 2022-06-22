@@ -289,6 +289,8 @@ def lock(name, lock_file_prefix=None, external=False, lock_path=None,
     else:
         int_lock = internal_lock(name, semaphores=semaphores,
                                  blocking=blocking)
+    if do_log:
+        LOG.debug('Acquiring lock "%s"', name)
     with int_lock:
         if do_log:
             LOG.debug('Acquired lock "%(lock)s"', {'lock': name})
@@ -378,7 +380,9 @@ def synchronized(name, lock_file_prefix=None, external=False, lock_path=None,
             t1 = timeutils.now()
             t2 = None
             gotten = True
+            f_name = reflection.get_callable_name(f)
             try:
+                LOG.debug('Acquiring lock "%s" by "%s"', name, f_name)
                 with lock(name, lock_file_prefix, external, lock_path,
                           do_log=False, semaphores=semaphores, delay=delay,
                           fair=fair, blocking=blocking):
@@ -386,7 +390,7 @@ def synchronized(name, lock_file_prefix=None, external=False, lock_path=None,
                     LOG.debug('Lock "%(name)s" acquired by "%(function)s" :: '
                               'waited %(wait_secs)0.3fs',
                               {'name': name,
-                               'function': reflection.get_callable_name(f),
+                               'function': f_name,
                                'wait_secs': (t2 - t1)})
                     return f(*args, **kwargs)
             except AcquireLockFailedException:
@@ -401,7 +405,7 @@ def synchronized(name, lock_file_prefix=None, external=False, lock_path=None,
                           ' held %(held_secs)s',
                           {'name': name,
                            'gotten': 'released' if gotten else 'unacquired',
-                           'function': reflection.get_callable_name(f),
+                           'function': f_name,
                            'held_secs': held_secs})
         return inner
 

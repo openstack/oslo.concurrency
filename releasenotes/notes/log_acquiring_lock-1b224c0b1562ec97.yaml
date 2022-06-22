@@ -1,0 +1,5 @@
+---
+features:
+  - |
+    Log before trying to acquire a lock to help detect deadlocks and long waits
+    to acquire locks.
