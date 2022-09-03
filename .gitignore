@@ -58,3 +58,6 @@ ChangeLog
 releasenotes/build
 RELEASENOTES.rst
 releasenotes/notes/reno.cache
+
+# coverage results
+.coverage.*
