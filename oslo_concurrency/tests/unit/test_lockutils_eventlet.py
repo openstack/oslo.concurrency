@@ -51,3 +51,66 @@ class TestFileLocks(test_base.BaseTestCase):
         pool.waitall()
 
         self.assertTrue(self.completed)
+
+
+class TestInternalLock(test_base.BaseTestCase):
+    def _test_internal_lock_with_two_threads(self, fair, spawn):
+        self.other_started = eventlet.event.Event()
+        self.other_finished = eventlet.event.Event()
+
+        def other():
+            self.other_started.send('started')
+            with lockutils.lock("my-lock", fair=fair):
+                pass
+            self.other_finished.send('finished')
+
+        with lockutils.lock("my-lock", fair=fair):
+            # holding the lock and starting another thread that also wants to
+            # take it before finishes
+            spawn(other)
+            # let the other thread start
+            self.other_started.wait()
+            eventlet.sleep(0)
+            # the other thread should not have finished as it would need the
+            # lock we are holding
+            self.assertIsNone(
+                self.other_finished.wait(0.5),
+                "Two threads was able to take the same lock",
+            )
+
+        # we released the lock, let the other thread take it and run to
+        # completion
+        result = self.other_finished.wait()
+        self.assertEqual('finished', result)
+
+    def test_lock_with_spawn(self):
+        self._test_internal_lock_with_two_threads(
+            fair=False, spawn=eventlet.spawn
+        )
+
+    def test_lock_with_spawn_n(self):
+        self._test_internal_lock_with_two_threads(
+            fair=False, spawn=eventlet.spawn_n
+        )
+
+    def test_fair_lock_with_spawn(self):
+        self._test_internal_lock_with_two_threads(
+            fair=True, spawn=eventlet.spawn
+        )
+
+    def test_fair_lock_with_spawn_n(self):
+        # This is bug 1988311 where spawn_n does not work with fair locks
+        ex = self.assertRaises(
+            AssertionError,
+            self._test_internal_lock_with_two_threads,
+            fair=True,
+            spawn=eventlet.spawn_n,
+        )
+        self.assertEqual(
+            "'finished' is not None: "
+            "Two threads was able to take the same lock",
+            str(ex),
+        )
+        # self._test_internal_lock_with_two_threads(
+        #     fair=True, spawn=eventlet.spawn_n
+        # )
