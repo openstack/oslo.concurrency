@@ -99,18 +99,6 @@ class TestInternalLock(test_base.BaseTestCase):
         )
 
     def test_fair_lock_with_spawn_n(self):
-        # This is bug 1988311 where spawn_n does not work with fair locks
-        ex = self.assertRaises(
-            AssertionError,
-            self._test_internal_lock_with_two_threads,
-            fair=True,
-            spawn=eventlet.spawn_n,
+        self._test_internal_lock_with_two_threads(
+            fair=True, spawn=eventlet.spawn_n
         )
-        self.assertEqual(
-            "'finished' is not None: "
-            "Two threads was able to take the same lock",
-            str(ex),
-        )
-        # self._test_internal_lock_with_two_threads(
-        #     fair=True, spawn=eventlet.spawn_n
-        # )

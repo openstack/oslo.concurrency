@@ -32,6 +32,14 @@ from oslo_utils import timeutils
 
 from oslo_concurrency._i18n import _
 
+try:
+    # import eventlet optionally
+    import eventlet
+    from eventlet import patcher as eventlet_patcher
+except ImportError:
+    eventlet = None
+    eventlet_patcher = None
+
 
 LOG = logging.getLogger(__name__)
 
@@ -79,12 +87,23 @@ def get_lock_path(conf):
     return conf.oslo_concurrency.lock_path
 
 
-InterProcessLock = fasteners.InterProcessLock
-ReaderWriterLock = fasteners.ReaderWriterLock
-"""A reader/writer lock.
+class ReaderWriterLock(fasteners.ReaderWriterLock):
+    """A reader/writer lock.
 
-.. versionadded:: 0.4
-"""
+    .. versionadded:: 0.4
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Until https://github.com/eventlet/eventlet/issues/731 is resolved
+        # we need to use eventlet.getcurrent instead of
+        # threading.current_thread if we are running in a monkey patched
+        # environment
+        if eventlet is not None and eventlet_patcher is not None:
+            if eventlet_patcher.is_monkey_patched('thread'):
+                self._current_thread = eventlet.getcurrent
+
+
+InterProcessLock = fasteners.InterProcessLock
 
 
 class FairLocks(object):
