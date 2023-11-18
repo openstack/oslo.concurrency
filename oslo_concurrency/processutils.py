@@ -26,6 +26,7 @@ import shlex
 import signal
 import sys
 import time
+import warnings
 
 import enum
 from oslo_utils import encodeutils
@@ -34,6 +35,11 @@ from oslo_utils import strutils
 from oslo_utils import timeutils
 
 from oslo_concurrency._i18n import _
+
+
+if os.name == 'nt':
+    warnings.warn('Support for Windows OS is deprecated.',
+                  category=DeprecationWarning, stacklevel=3)
 
 
 # NOTE(bnemec): eventlet doesn't monkey patch subprocess, so we need to
