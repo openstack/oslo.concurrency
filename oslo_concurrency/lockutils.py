@@ -46,16 +46,14 @@ LOG = logging.getLogger(__name__)
 
 _opts = [
     cfg.BoolOpt('disable_process_locking', default=False,
-                help='Enables or disables inter-process locks.',
-                deprecated_group='DEFAULT'),
+                help='Enables or disables inter-process locks.'),
     cfg.StrOpt('lock_path',
                default=os.environ.get("OSLO_LOCK_PATH"),
                help='Directory to use for lock files.  For security, the '
                     'specified directory should only be writable by the user '
                     'running the processes that need locking. '
                     'Defaults to environment variable OSLO_LOCK_PATH. '
-                    'If external locks are used, a lock path must be set.',
-               deprecated_group='DEFAULT')
+                    'If external locks are used, a lock path must be set.')
 ]
 
 

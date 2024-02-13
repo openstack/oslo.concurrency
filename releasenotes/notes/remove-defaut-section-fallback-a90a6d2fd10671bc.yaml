@@ -1,0 +1,8 @@
+---
+upgrade:
+  - |
+    The following options are no longer loaded from the ``[DEFAULT] section``.
+    Set these options in the ``[oslo_concurrency]`` section.
+
+    - ``disable_process_locking``
+    - ``lock_path``
