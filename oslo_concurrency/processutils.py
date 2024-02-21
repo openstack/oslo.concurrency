@@ -39,7 +39,7 @@ from oslo_concurrency._i18n import _
 
 if os.name == 'nt':
     warnings.warn('Support for Windows OS is deprecated.',
-                  category=DeprecationWarning, stacklevel=3)
+                  category=DeprecationWarning)
 
 
 # NOTE(bnemec): eventlet doesn't monkey patch subprocess, so we need to
