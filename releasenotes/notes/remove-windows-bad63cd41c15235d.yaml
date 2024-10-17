@@ -1,0 +1,4 @@
+---
+upgrade:
+  - |
+    This library no longer supports Windows operating systems.
