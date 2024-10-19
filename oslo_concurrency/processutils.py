@@ -70,18 +70,18 @@ LOG = logging.getLogger(__name__)
 
 class InvalidArgumentError(Exception):
     def __init__(self, message=None):
-        super(InvalidArgumentError, self).__init__(message)
+        super().__init__(message)
 
 
 class UnknownArgumentError(Exception):
     def __init__(self, message=None):
-        super(UnknownArgumentError, self).__init__(message)
+        super().__init__(message)
 
 
 class ProcessExecutionError(Exception):
     def __init__(self, stdout=None, stderr=None, exit_code=None, cmd=None,
                  description=None):
-        super(ProcessExecutionError, self).__init__(
+        super().__init__(
             stdout, stderr, exit_code, cmd, description)
         self.exit_code = exit_code
         self.stderr = stderr
@@ -112,7 +112,7 @@ class ProcessExecutionError(Exception):
 
 class NoRootWrapSpecified(Exception):
     def __init__(self, message=None):
-        super(NoRootWrapSpecified, self).__init__(message)
+        super().__init__(message)
 
 
 def _subprocess_setup(on_preexec_fn):
@@ -146,7 +146,7 @@ LOG_FINAL_ERROR = LogErrors.FINAL
 LOG_DEFAULT_ERROR = LogErrors.DEFAULT
 
 
-class ProcessLimits(object):
+class ProcessLimits:
     """Resource limits on a process.
 
     Attributes:
@@ -192,7 +192,7 @@ class ProcessLimits(object):
         for limit in self._LIMITS:
             val = getattr(self, limit)
             if val is not None:
-                args.append("%s=%s" % (self._LIMITS[limit], val))
+                args.append("{}={}".format(self._LIMITS[limit], val))
         return args
 
 

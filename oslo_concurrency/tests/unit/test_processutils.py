@@ -89,7 +89,7 @@ class UtilsTest(test_base.BaseTestCase):
         on_completion_callback = mock.Mock()
 
         def fake_communicate(*args, timeout=None):
-            raise IOError("Broken pipe")
+            raise OSError("Broken pipe")
 
         mock_comm.side_effect = fake_communicate
 
@@ -128,7 +128,7 @@ class UtilsTest(test_base.BaseTestCase):
         mock_comm.return_value = None
         mock_tpool.execute.return_value = mock_comm.return_value
 
-        fake_pinput = 'fake pinput'.encode('utf-8')
+        fake_pinput = b'fake pinput'
 
         with mock.patch.object(processutils, 'eventlet_patched',
                                use_eventlet):
@@ -240,7 +240,7 @@ exit 1
                               tmpfilename, tmpfilename2, attempts=10,
                               process_input=b'foo',
                               delay_on_retry=False)
-            fp = open(tmpfilename2, 'r')
+            fp = open(tmpfilename2)
             runs = fp.read()
             fp.close()
             self.assertNotEqual('failure', 'stdin did not '
@@ -320,7 +320,7 @@ grep foo
     # This test and the one below ensures that when communicate raises
     # an OSError, we do the right thing(s)
     def test_exception_on_communicate_error(self):
-        mock = self.useFixture(fixtures.MockPatch(
+        mock_comm = self.useFixture(fixtures.MockPatch(
             'subprocess.Popen.communicate',
             side_effect=OSError(errno.EAGAIN, 'fake-test')))
 
@@ -330,10 +330,10 @@ grep foo
                           'false',
                           check_exit_code=False)
 
-        self.assertEqual(1, mock.mock.call_count)
+        self.assertEqual(1, mock_comm.mock.call_count)
 
     def test_retry_on_communicate_error(self):
-        mock = self.useFixture(fixtures.MockPatch(
+        mock_comm = self.useFixture(fixtures.MockPatch(
             'subprocess.Popen.communicate',
             side_effect=OSError(errno.EAGAIN, 'fake-test')))
 
@@ -344,11 +344,11 @@ grep foo
                           check_exit_code=False,
                           attempts=5)
 
-        self.assertEqual(5, mock.mock.call_count)
+        self.assertEqual(5, mock_comm.mock.call_count)
 
     def _test_and_check_logging_communicate_errors(self, log_errors=None,
                                                    attempts=None):
-        mock = self.useFixture(fixtures.MockPatch(
+        mock_comm = self.useFixture(fixtures.MockPatch(
             'subprocess.Popen.communicate',
             side_effect=OSError(errno.EAGAIN, 'fake-test')))
 
@@ -367,7 +367,8 @@ grep foo
                           'false',
                           **kwargs)
 
-        self.assertEqual(attempts if attempts else 1, mock.mock.call_count)
+        self.assertEqual(attempts if attempts else 1,
+                         mock_comm.mock.call_count)
         self.assertIn('Got an OSError', fixture.output)
         self.assertIn('errno: %d' % errno.EAGAIN, fixture.output)
         self.assertIn("'/usr/bin/env false'", fixture.output)
@@ -530,7 +531,7 @@ grep foo
 
 class ProcessExecutionErrorLoggingTest(test_base.BaseTestCase):
     def setUp(self):
-        super(ProcessExecutionErrorLoggingTest, self).setUp()
+        super().setUp()
         self.tmpfilename = self.create_tempfiles(
             [["process_execution_error_logging_test",
               PROCESS_EXECUTION_ERROR_LOGGING_TEST]],
@@ -624,7 +625,7 @@ class TryCmdTestCase(test_base.BaseTestCase):
         self.assertEqual('', e)
 
 
-class FakeSshChannel(object):
+class FakeSshChannel:
     def __init__(self, rc):
         self.rc = rc
 
@@ -637,7 +638,7 @@ class FakeSshStream(io.BytesIO):
         self.channel = FakeSshChannel(rc)
 
 
-class FakeSshConnection(object):
+class FakeSshConnection:
     def __init__(self, rc, out=b'stdout', err=b'stderr'):
         self.rc = rc
         self.out = out

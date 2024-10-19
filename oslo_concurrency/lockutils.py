@@ -104,7 +104,7 @@ class ReaderWriterLock(fasteners.ReaderWriterLock):
 InterProcessLock = fasteners.InterProcessLock
 
 
-class FairLocks(object):
+class FairLocks:
     """A garbage collected container of fair locks.
 
     With a fair lock, contending lockers will get the lock in the order in
@@ -147,7 +147,7 @@ def internal_fair_lock(name):
     return _fair_locks.get(name)
 
 
-class Semaphores(object):
+class Semaphores:
     """A garbage collected container of semaphores.
 
     This collection internally uses a weak value dictionary so that when a
@@ -192,7 +192,7 @@ def _get_lock_path(name, lock_file_prefix, lock_path=None):
     name = name.replace(os.sep, '_')
     if lock_file_prefix:
         sep = '' if lock_file_prefix.endswith('-') else '-'
-        name = '%s%s%s' % (lock_file_prefix, sep, name)
+        name = '{}{}{}'.format(lock_file_prefix, sep, name)
 
     local_lock_path = lock_path or CONF.oslo_concurrency.lock_path
 

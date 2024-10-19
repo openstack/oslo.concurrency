@@ -47,7 +47,7 @@ class LockFixture(fixtures.Fixture):
         self.mgr = lockutils.lock(name, lock_file_prefix, True)
 
     def setUp(self):
-        super(LockFixture, self).setUp()
+        super().setUp()
         self.addCleanup(self.mgr.__exit__, None, None, None)
         self.lock = self.mgr.__enter__()
 
@@ -72,7 +72,7 @@ class ExternalLockFixture(fixtures.Fixture):
     .. versionadded:: 0.3
     """
     def setUp(self):
-        super(ExternalLockFixture, self).setUp()
+        super().setUp()
         temp_dir = self.useFixture(fixtures.TempDir())
         conf = self.useFixture(config.Config(lockutils.CONF)).config
         conf(lock_path=temp_dir.path, group='oslo_concurrency')
