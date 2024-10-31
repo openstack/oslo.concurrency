@@ -68,7 +68,7 @@ def lock_files(handles_dir, out_queue):
                 lock_file(handle)
                 count += 1
                 unlock_file(handle)
-            except IOError:
+            except OSError:
                 os._exit(2)
             finally:
                 handle.close()
@@ -78,7 +78,7 @@ def lock_files(handles_dir, out_queue):
 class LockTestCase(test_base.BaseTestCase):
 
     def setUp(self):
-        super(LockTestCase, self).setUp()
+        super().setUp()
         self.config = self.useFixture(config.Config(lockutils.CONF)).config
 
     def test_synchronized_wrapped_function_metadata(self):
@@ -363,7 +363,7 @@ class LockTestCase(test_base.BaseTestCase):
 
 class FileBasedLockingTestCase(test_base.BaseTestCase):
     def setUp(self):
-        super(FileBasedLockingTestCase, self).setUp()
+        super().setUp()
         self.lock_dir = tempfile.mkdtemp()
 
     def test_lock_file_exists(self):
@@ -399,7 +399,7 @@ class FileBasedLockingTestCase(test_base.BaseTestCase):
                     lock1.trylock()
                     lock1.unlock()
                     time.sleep(0)
-                except IOError:
+                except OSError:
                     # This is what we expect to happen
                     break
             else:
@@ -415,7 +415,7 @@ class FileBasedLockingTestCase(test_base.BaseTestCase):
                     try:
                         lock2.trylock()
                         have_lock = True
-                    except IOError:
+                    except OSError:
                         pass
             finally:
                 # NOTE(bnemec): This is racy, but I don't want to add any
@@ -557,7 +557,7 @@ class FileBasedLockingTestCase(test_base.BaseTestCase):
 class LockutilsModuleTestCase(test_base.BaseTestCase):
 
     def setUp(self):
-        super(LockutilsModuleTestCase, self).setUp()
+        super().setUp()
         self.old_env = os.environ.get('OSLO_LOCK_PATH')
         if self.old_env is not None:
             del os.environ['OSLO_LOCK_PATH']
@@ -565,7 +565,7 @@ class LockutilsModuleTestCase(test_base.BaseTestCase):
     def tearDown(self):
         if self.old_env is not None:
             os.environ['OSLO_LOCK_PATH'] = self.old_env
-        super(LockutilsModuleTestCase, self).tearDown()
+        super().tearDown()
 
     def test_main(self):
         script = '\n'.join([
@@ -597,7 +597,7 @@ class LockutilsModuleTestCase(test_base.BaseTestCase):
 class TestLockFixture(test_base.BaseTestCase):
 
     def setUp(self):
-        super(TestLockFixture, self).setUp()
+        super().setUp()
         self.config = self.useFixture(config.Config(lockutils.CONF)).config
         self.tempdir = tempfile.mkdtemp()
 
@@ -606,7 +606,7 @@ class TestLockFixture(test_base.BaseTestCase):
 
     def tearDown(self):
         self._check_in_lock()
-        super(TestLockFixture, self).tearDown()
+        super().tearDown()
 
     def test_lock_fixture(self):
         # Setup lock fixture to test that teardown is inside the lock
@@ -619,7 +619,7 @@ class TestLockFixture(test_base.BaseTestCase):
 class TestGetLockPath(test_base.BaseTestCase):
 
     def setUp(self):
-        super(TestGetLockPath, self).setUp()
+        super().setUp()
         self.conf = self.useFixture(config.Config(lockutils.CONF)).conf
 
     def test_get_default(self):
