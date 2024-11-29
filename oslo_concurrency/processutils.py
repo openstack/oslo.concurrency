@@ -42,25 +42,19 @@ if os.name == 'nt':
                   category=DeprecationWarning)
 
 
-# NOTE(bnemec): eventlet doesn't monkey patch subprocess, so we need to
-# determine the proper subprocess module to use ourselves.  I'm using the
-# time module as the check because that's a monkey patched module we use
-# in combination with subprocess below, so they need to match.
 eventlet = importutils.try_import('eventlet')
-eventlet_patched = eventlet and eventlet.patcher.is_monkey_patched(time)
-if eventlet_patched:
-    if os.name == 'nt':
-        # subprocess.Popen.communicate will spawn two threads consuming
-        # stdout/stderr when passing data through stdin. We need to make
-        # sure that *native* threads will be used as pipes are blocking
-        # on Windows.
-        # Recent eventlet versions actually do patch subprocess.
-        subprocess = eventlet.patcher.original('subprocess')
-        subprocess.threading = eventlet.patcher.original('threading')
-    else:
-        from eventlet.green import subprocess
-
+if eventlet:
     from eventlet import tpool
+
+eventlet_patched = (eventlet and
+                    eventlet.patcher.is_monkey_patched('subprocess'))
+if eventlet_patched and os.name == 'nt':
+    # subprocess.Popen.communicate will spawn two threads consuming
+    # stdout/stderr when passing data through stdin. We need to make
+    # sure that *native* threads will be used as pipes are blocking
+    # on Windows.
+    subprocess = eventlet.patcher.original('subprocess')
+    subprocess.threading = eventlet.patcher.original('threading')
 else:
     import subprocess
 
@@ -397,9 +391,9 @@ def execute(*cmd, **kwargs):
                                    stderr=_PIPE,
                                    close_fds=close_fds,
                                    preexec_fn=on_preexec_fn,
-                                   shell=shell,  # nosec:B604
+                                   shell=shell,
                                    cwd=cwd,
-                                   env=env_variables)
+                                   env=env_variables)  # nosec:B602
 
             if on_execute:
                 on_execute(obj)
