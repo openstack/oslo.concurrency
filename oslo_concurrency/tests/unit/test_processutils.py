@@ -117,45 +117,6 @@ class UtilsTest(test_base.BaseTestCase):
             if type(e).__name__ != 'SubprocessError':
                 raise
 
-    @mock.patch.object(os, 'name', 'nt')
-    @mock.patch.object(processutils.subprocess, "Popen")
-    @mock.patch.object(processutils, 'tpool', create=True)
-    def _test_windows_execute(self, mock_tpool, mock_popen,
-                              use_eventlet=False):
-        # We want to ensure that if eventlet is used on Windows,
-        # 'communicate' calls are wrapped with eventlet.tpool.execute.
-        mock_comm = mock_popen.return_value.communicate
-        mock_comm.return_value = None
-        mock_tpool.execute.return_value = mock_comm.return_value
-
-        fake_pinput = b'fake pinput'
-
-        with mock.patch.object(processutils, 'eventlet_patched',
-                               use_eventlet):
-            processutils.execute(
-                TRUE_UTILITY,
-                process_input=fake_pinput,
-                check_exit_code=False)
-
-        mock_popen.assert_called_once_with(
-            [TRUE_UTILITY],
-            stdin=mock.ANY, stdout=mock.ANY,
-            stderr=mock.ANY, close_fds=mock.ANY,
-            preexec_fn=mock.ANY, shell=mock.ANY,
-            cwd=mock.ANY, env=mock.ANY)
-
-        if use_eventlet:
-            mock_tpool.execute.assert_called_once_with(
-                mock_comm, fake_pinput, timeout=None)
-        else:
-            mock_comm.assert_called_once_with(fake_pinput, timeout=None)
-
-    def test_windows_execute_without_eventlet(self):
-        self._test_windows_execute()
-
-    def test_windows_execute_using_eventlet(self):
-        self._test_windows_execute(use_eventlet=True)
-
 
 class ProcessExecutionErrorTest(test_base.BaseTestCase):
 
@@ -953,28 +914,6 @@ class PrlimitTestCase(test_base.BaseTestCase):
             self.assertIn(expected, exc.stderr)
         else:
             self.fail("ProcessExecutionError not raised")
-
-    @mock.patch.object(os, 'name', 'nt')
-    @mock.patch.object(processutils.subprocess, "Popen")
-    def test_prlimit_windows(self, mock_popen):
-        # We want to ensure that process resource limits are
-        # ignored on Windows, in which case this feature is not
-        # supported. We'll just check the command passed to Popen,
-        # which is expected to be unaltered.
-        prlimit = self.limit_address_space()
-        mock_popen.return_value.communicate.return_value = None
-
-        processutils.execute(
-            *self.SIMPLE_PROGRAM,
-            prlimit=prlimit,
-            check_exit_code=False)
-
-        mock_popen.assert_called_once_with(
-            self.SIMPLE_PROGRAM,
-            stdin=mock.ANY, stdout=mock.ANY,
-            stderr=mock.ANY, close_fds=mock.ANY,
-            preexec_fn=mock.ANY, shell=mock.ANY,
-            cwd=mock.ANY, env=mock.ANY)
 
     @mock.patch.object(processutils.subprocess, 'Popen')
     def test_python_exec(self, sub_mock):

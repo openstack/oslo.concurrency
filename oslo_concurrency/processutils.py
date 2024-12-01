@@ -24,39 +24,16 @@ import os
 import random
 import shlex
 import signal
+import subprocess
 import sys
 import time
-import warnings
 
 import enum
 from oslo_utils import encodeutils
-from oslo_utils import importutils
 from oslo_utils import strutils
 from oslo_utils import timeutils
 
 from oslo_concurrency._i18n import _
-
-
-if os.name == 'nt':
-    warnings.warn('Support for Windows OS is deprecated.',
-                  category=DeprecationWarning)
-
-
-eventlet = importutils.try_import('eventlet')
-if eventlet:
-    from eventlet import tpool
-
-eventlet_patched = (eventlet and
-                    eventlet.patcher.is_monkey_patched('subprocess'))
-if eventlet_patched and os.name == 'nt':
-    # subprocess.Popen.communicate will spawn two threads consuming
-    # stdout/stderr when passing data through stdin. We need to make
-    # sure that *native* threads will be used as pipes are blocking
-    # on Windows.
-    subprocess = eventlet.patcher.original('subprocess')
-    subprocess.threading = eventlet.patcher.original('threading')
-else:
-    import subprocess
 
 
 LOG = logging.getLogger(__name__)
@@ -355,16 +332,11 @@ def execute(*cmd, **kwargs):
     cmd = [str(c) for c in cmd]
 
     if prlimit:
-        if os.name == 'nt':
-            LOG.log(loglevel,
-                    _('Process resource limits are ignored as '
-                      'this feature is not supported on Windows.'))
-        else:
-            args = [python_exec, '-m', 'oslo_concurrency.prlimit']
-            args.extend(prlimit.prlimit_args())
-            args.append('--')
-            args.extend(cmd)
-            cmd = args
+        args = [python_exec, '-m', 'oslo_concurrency.prlimit']
+        args.extend(prlimit.prlimit_args())
+        args.append('--')
+        args.extend(cmd)
+        cmd = args
 
     sanitized_cmd = strutils.mask_password(' '.join(cmd))
 
@@ -377,19 +349,13 @@ def execute(*cmd, **kwargs):
             LOG.log(loglevel, _('Running cmd (subprocess): %s'), sanitized_cmd)
             _PIPE = subprocess.PIPE  # pylint: disable=E1101
 
-            if os.name == 'nt':
-                on_preexec_fn = None
-                close_fds = False
-            else:
-                on_preexec_fn = functools.partial(_subprocess_setup,
-                                                  preexec_fn)
-                close_fds = True
+            on_preexec_fn = functools.partial(_subprocess_setup, preexec_fn)
 
             obj = subprocess.Popen(cmd,
                                    stdin=_PIPE,
                                    stdout=_PIPE,
                                    stderr=_PIPE,
-                                   close_fds=close_fds,
+                                   close_fds=True,
                                    preexec_fn=on_preexec_fn,
                                    shell=shell,
                                    cwd=cwd,
@@ -399,16 +365,7 @@ def execute(*cmd, **kwargs):
                 on_execute(obj)
 
             try:
-                # eventlet.green.subprocess is not really greenthread friendly
-                # on Windows. In order to avoid blocking other greenthreads,
-                # we have to wrap this call using tpool.
-                if eventlet_patched and os.name == 'nt':
-                    result = tpool.execute(obj.communicate,
-                                           process_input,
-                                           timeout=timeout)
-                else:
-                    result = obj.communicate(process_input,
-                                             timeout=timeout)
+                result = obj.communicate(process_input, timeout=timeout)
 
                 obj.stdin.close()  # pylint: disable=E1101
                 _returncode = obj.returncode  # pylint: disable=E1101
