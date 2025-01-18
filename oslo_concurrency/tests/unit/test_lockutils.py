@@ -14,6 +14,7 @@
 
 import collections
 import errno
+import fcntl
 import multiprocessing
 import os
 import signal
@@ -29,25 +30,6 @@ from oslotest import base as test_base
 from oslo_concurrency.fixture import lockutils as fixtures
 from oslo_concurrency import lockutils
 from oslo_config import fixture as config
-
-if sys.platform == 'win32':
-    import msvcrt
-else:
-    import fcntl
-
-
-def lock_file(handle):
-    if sys.platform == 'win32':
-        msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
-    else:
-        fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
-
-
-def unlock_file(handle):
-    if sys.platform == 'win32':
-        msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
-    else:
-        fcntl.flock(handle, fcntl.LOCK_UN)
 
 
 def lock_files(handles_dir, out_queue):
@@ -65,9 +47,9 @@ def lock_files(handles_dir, out_queue):
         count = 0
         for handle in handles:
             try:
-                lock_file(handle)
+                fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
                 count += 1
-                unlock_file(handle)
+                fcntl.flock(handle, fcntl.LOCK_UN)
             except OSError:
                 os._exit(2)
             finally:
