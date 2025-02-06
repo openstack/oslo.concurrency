@@ -25,6 +25,7 @@ import tempfile
 import threading
 import weakref
 
+import debtcollector
 import fasteners
 from oslo_config import cfg
 from oslo_utils import reflection
@@ -98,6 +99,8 @@ class ReaderWriterLock(fasteners.ReaderWriterLock):
         # environment
         if eventlet is not None and eventlet_patcher is not None:
             if eventlet_patcher.is_monkey_patched('thread'):
+                debtcollector.deprecate(
+                    "Eventlet support is deprecated and will be removed.")
                 self._current_thread = eventlet.getcurrent
 
 
