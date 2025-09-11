@@ -1,3 +1,49 @@
 [build-system]
 requires = ["pbr>=6.1.1"]
 build-backend = "pbr.build"
+
+[project]
+name = "oslo.concurrency"
+description = "Oslo Concurrency library"
+authors = [
+    {name = "OpenStack", email = "openstack-discuss@lists.openstack.org"},
+]
+readme = {file = "README.rst", content-type = "text/x-rst"}
+license = {text = "Apache-2.0"}
+dynamic = ["version", "dependencies"]
+requires-python = ">=3.10"
+classifiers = [
+  "Environment :: OpenStack",
+  "Intended Audience :: Information Technology",
+  "Intended Audience :: System Administrators",
+  "License :: OSI Approved :: Apache Software License",
+  "Operating System :: POSIX :: Linux",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: Implementation :: CPython",
+]
+
+[project.urls]
+Homepage = "https://docs.openstack.org/oslo.concurrency"
+Repository = "https://opendev.org/openstack/oslo.concurrency"
+
+[project.optional-dependencies]
+eventlet = [
+    "eventlet>=0.35.2", # MIT
+]
+
+[project.entry-points."oslo.config.opts"]
+"oslo.concurrency" = "oslo_concurrency.opts:list_opts"
+
+[project.scripts]
+"lockutils-wrapper" = "oslo_concurrency.lockutils:main"
+
+[tool.setuptools]
+packages = [
+    "oslo_concurrency"
+]
