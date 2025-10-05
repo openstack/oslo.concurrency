@@ -607,7 +607,7 @@ class FakeSshConnection:
 
     def exec_command(self, cmd, timeout=None):
         if timeout:
-            raise socket.timeout()
+            raise TimeoutError()
         stdout = FakeSshStream(self.out)
         stdout.setup_channel(self.rc)
         return (io.BytesIO(),

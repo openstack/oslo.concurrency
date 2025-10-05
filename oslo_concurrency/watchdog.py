@@ -64,7 +64,7 @@ def watch(logger, action, level=logging.DEBUG, after=5.0):
     watch.start()
 
     def log():
-        msg = "{} not completed after {:0.3f}s".format(action, watch.elapsed())
+        msg = f"{action} not completed after {watch.elapsed():0.3f}s"
         logger.log(level, msg)
 
     timer = threading.Timer(after, log)

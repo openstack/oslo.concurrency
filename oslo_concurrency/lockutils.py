@@ -195,7 +195,7 @@ def _get_lock_path(name, lock_file_prefix, lock_path=None):
     name = name.replace(os.sep, '_')
     if lock_file_prefix:
         sep = '' if lock_file_prefix.endswith('-') else '-'
-        name = '{}{}{}'.format(lock_file_prefix, sep, name)
+        name = f'{lock_file_prefix}{sep}{name}'
 
     local_lock_path = lock_path or CONF.oslo_concurrency.lock_path
 

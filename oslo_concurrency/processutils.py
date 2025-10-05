@@ -163,7 +163,7 @@ class ProcessLimits:
         for limit in self._LIMITS:
             val = getattr(self, limit)
             if val is not None:
-                args.append("{}={}".format(self._LIMITS[limit], val))
+                args.append(f"{self._LIMITS[limit]}={val}")
         return args
 
 
