@@ -47,3 +47,7 @@ eventlet = [
 packages = [
     "oslo_concurrency"
 ]
+
+[tool.bandit]
+exclude_dirs = ["tests"]
+skips = ['B311', 'B404', 'B603', 'B606']
