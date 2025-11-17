@@ -54,14 +54,6 @@ TRUE_UTILITY = (
 
 
 class UtilsTest(test_base.BaseTestCase):
-    # NOTE(jkoelker) Moar tests from nova need to be ported. But they
-    #                need to be mock'd out. Currently they require actually
-    #                running code.
-    def test_execute_unknown_kwargs(self):
-        self.assertRaises(
-            processutils.UnknownArgumentError, processutils.execute, hozer=True
-        )
-
     @mock.patch.object(multiprocessing, 'cpu_count', return_value=8)
     def test_get_worker_count(self, mock_cpu_count):
         self.assertEqual(8, processutils.get_worker_count())
@@ -223,15 +215,6 @@ exit 1
         finally:
             os.unlink(tmpfilename)
             os.unlink(tmpfilename2)
-
-    def test_unknown_kwargs_raises_error(self):
-        self.assertRaises(
-            processutils.UnknownArgumentError,
-            processutils.execute,
-            '/usr/bin/env',
-            'true',
-            this_is_not_a_valid_kwarg=True,
-        )
 
     def test_check_exit_code_boolean(self):
         processutils.execute('/usr/bin/env', 'false', check_exit_code=False)
@@ -1003,9 +986,6 @@ class PrlimitTestCase(test_base.BaseTestCase):
         max_memory = self.memory_limit(resource.RLIMIT_STACK)
         prlimit = processutils.ProcessLimits(stack_size=max_memory)
         self.check_limit(prlimit, 'RLIMIT_STACK', max_memory)
-
-    def test_unsupported_prlimit(self):
-        self.assertRaises(ValueError, processutils.ProcessLimits, xxx=33)
 
     def test_relative_path(self):
         prlimit = self.limit_address_space()
