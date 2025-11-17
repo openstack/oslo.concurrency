@@ -19,8 +19,9 @@ import resource
 import shutil
 import sys
 
-USAGE_PROGRAM = ('%s -m oslo_concurrency.prlimit'
-                 % os.path.basename(sys.executable))
+USAGE_PROGRAM = (
+    f'{os.path.basename(sys.executable)} -m oslo_concurrency.prlimit'
+)
 
 RESOURCES = (
     # argparse argument => resource
@@ -39,30 +40,30 @@ RESOURCES = (
 
 def parse_args():
     parser = argparse.ArgumentParser(description='prlimit', prog=USAGE_PROGRAM)
-    parser.add_argument('--as', type=int,
-                        help='Address space limit in bytes')
-    parser.add_argument('--core', type=int,
-                        help='Core file size limit in bytes')
-    parser.add_argument('--cpu', type=int,
-                        help='CPU time limit in seconds')
-    parser.add_argument('--data', type=int,
-                        help='Data size limit in bytes')
-    parser.add_argument('--fsize', type=int,
-                        help='File size limit in bytes')
-    parser.add_argument('--memlock', type=int,
-                        help='Locked memory limit in bytes')
-    parser.add_argument('--nofile', type=int,
-                        help='Maximum number of open files')
-    parser.add_argument('--nproc', type=int,
-                        help='Maximum number of processes')
-    parser.add_argument('--rss', type=int,
-                        help='Maximum Resident Set Size (RSS) in bytes')
-    parser.add_argument('--stack', type=int,
-                        help='Stack size limit in bytes')
-    parser.add_argument('program',
-                        help='Program (absolute path)')
-    parser.add_argument('program_args', metavar="arg", nargs='...',
-                        help='Program parameters')
+    parser.add_argument('--as', type=int, help='Address space limit in bytes')
+    parser.add_argument(
+        '--core', type=int, help='Core file size limit in bytes'
+    )
+    parser.add_argument('--cpu', type=int, help='CPU time limit in seconds')
+    parser.add_argument('--data', type=int, help='Data size limit in bytes')
+    parser.add_argument('--fsize', type=int, help='File size limit in bytes')
+    parser.add_argument(
+        '--memlock', type=int, help='Locked memory limit in bytes'
+    )
+    parser.add_argument(
+        '--nofile', type=int, help='Maximum number of open files'
+    )
+    parser.add_argument(
+        '--nproc', type=int, help='Maximum number of processes'
+    )
+    parser.add_argument(
+        '--rss', type=int, help='Maximum Resident Set Size (RSS) in bytes'
+    )
+    parser.add_argument('--stack', type=int, help='Stack size limit in bytes')
+    parser.add_argument('program', help='Program (absolute path)')
+    parser.add_argument(
+        'program_args', metavar="arg", nargs='...', help='Program parameters'
+    )
 
     args = parser.parse_args()
     return args
@@ -86,17 +87,21 @@ def main():
         try:
             resource.setrlimit(rlimit, (value, value))
         except ValueError as exc:
-            print("%s: failed to set the %s resource limit: %s"
-                  % (USAGE_PROGRAM, arg_name.upper(), exc),
-                  file=sys.stderr)
+            print(
+                f"{USAGE_PROGRAM}: failed to set the {arg_name.upper()} "
+                f"resource limit: {exc}",
+                file=sys.stderr,
+            )
             sys.exit(1)
 
     try:
-        os.execv(program, [program] + args.program_args)
+        # it's okay to start this user-provided program
+        os.execv(program, [program] + args.program_args)  # noqa: S606
     except Exception as exc:
-        print("%s: failed to execute %s: %s"
-              % (USAGE_PROGRAM, program, exc),
-              file=sys.stderr)
+        print(
+            f"{USAGE_PROGRAM}: failed to execute {program}: {exc}",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
 

@@ -48,6 +48,18 @@ packages = [
     "oslo_concurrency"
 ]
 
-[tool.bandit]
-exclude_dirs = ["tests"]
-skips = ['B311', 'B404', 'B603', 'B606']
+[tool.ruff]
+line-length = 79
+
+[tool.ruff.format]
+quote-style = "preserve"
+docstring-code-format = true
+
+[tool.ruff.lint]
+select = ["E4", "E5", "E7", "E9", "F", "S", "UP", "W"]
+ignore = [
+    "S101",  # asserts are only used for type narrowing
+]
+
+[tool.ruff.lint.per-file-ignores]
+"oslo_concurrency/tests/*" = ["S"]

@@ -195,9 +195,13 @@ htmlhelp_basename = 'oslo.concurrencyReleaseNotesDoc'
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    ('index', 'oslo.concurrencyReleaseNotes.tex',
-     'oslo.concurrency Release Notes Documentation',
-     'oslo.concurrency Developers', 'manual'),
+    (
+        'index',
+        'oslo.concurrencyReleaseNotes.tex',
+        'oslo.concurrency Release Notes Documentation',
+        'oslo.concurrency Developers',
+        'manual',
+    ),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -226,9 +230,13 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'oslo.concurrencyReleaseNotes',
-     'oslo.concurrency Release Notes Documentation',
-     ['oslo.concurrency Developers'], 1)
+    (
+        'index',
+        'oslo.concurrencyReleaseNotes',
+        'oslo.concurrency Release Notes Documentation',
+        ['oslo.concurrency Developers'],
+        1,
+    )
 ]
 
 # If true, show URL addresses after external links.
@@ -241,11 +249,15 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    ('index', 'oslo.concurrencyReleaseNotes',
-     'oslo.concurrency Release Notes Documentation',
-     'oslo.concurrency Developers', 'oslo.concurrencyReleaseNotes',
-     'One line description of project.',
-     'Miscellaneous'),
+    (
+        'index',
+        'oslo.concurrencyReleaseNotes',
+        'oslo.concurrency Release Notes Documentation',
+        'oslo.concurrency Developers',
+        'oslo.concurrencyReleaseNotes',
+        'One line description of project.',
+        'Miscellaneous',
+    ),
 ]
 
 # Documents to append as an appendix to all manuals.

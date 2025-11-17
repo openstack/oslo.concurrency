@@ -37,7 +37,7 @@ def lock_files(handles_dir, out_queue):
         # Open some files we can use for locking
         handles = []
         for n in range(50):
-            path = os.path.join(handles_dir, ('file-%s' % n))
+            path = os.path.join(handles_dir, (f'file-{n}'))
             handles.append(open(path, 'w'))
 
         # Loop over all the handles and try locking the file
@@ -58,7 +58,6 @@ def lock_files(handles_dir, out_queue):
 
 
 class LockTestCase(test_base.BaseTestCase):
-
     def setUp(self):
         super().setUp()
         self.config = self.useFixture(config.Config(lockutils.CONF)).config
@@ -69,10 +68,12 @@ class LockTestCase(test_base.BaseTestCase):
             """Bar."""
             pass
 
-        self.assertEqual('Bar.', foo.__doc__, "Wrapped function's docstring "
-                                              "got lost")
-        self.assertEqual('foo', foo.__name__, "Wrapped function's name "
-                                              "got mangled")
+        self.assertEqual(
+            'Bar.', foo.__doc__, "Wrapped function's docstring got lost"
+        )
+        self.assertEqual(
+            'foo', foo.__name__, "Wrapped function's name got mangled"
+        )
 
     def test_lock_internally_different_collections(self):
         s1 = lockutils.Semaphores()
@@ -122,18 +123,23 @@ class LockTestCase(test_base.BaseTestCase):
         # that the last 9 match the first in each chunk.
         for i in range(10):
             for j in range(9):
-                self.assertEqual(seen_threads[i * 10],
-                                 seen_threads[i * 10 + 1 + j])
+                self.assertEqual(
+                    seen_threads[i * 10], seen_threads[i * 10 + 1 + j]
+                )
 
-        self.assertEqual(saved_sem_num, len(lockutils._semaphores),
-                         "Semaphore leak detected")
+        self.assertEqual(
+            saved_sem_num,
+            len(lockutils._semaphores),
+            "Semaphore leak detected",
+        )
 
     def test_lock_internal_fair(self):
         """Check that we're actually fair."""
 
         def f(_id):
-            with lockutils.lock('testlock', 'test-',
-                                external=False, fair=True):
+            with lockutils.lock(
+                'testlock', 'test-', external=False, fair=True
+            ):
                 lock_holder.append(_id)
 
         lock_holder = []
@@ -165,13 +171,16 @@ class LockTestCase(test_base.BaseTestCase):
             s = lockutils.Semaphores()
             with lockutils.lock('testlock', 'test-', semaphores=s, fair=True):
                 pass
+
         self.assertRaises(NotImplementedError, do_test)
 
     def test_fair_lock_with_nonblocking(self):
         def do_test():
-            with lockutils.lock('testlock', 'test-', fair=True,
-                                blocking=False):
+            with lockutils.lock(
+                'testlock', 'test-', fair=True, blocking=False
+            ):
                 pass
+
         self.assertRaises(NotImplementedError, do_test)
 
     def test_nested_synchronized_external_works(self):
@@ -181,10 +190,10 @@ class LockTestCase(test_base.BaseTestCase):
 
         @lockutils.synchronized('testlock1', 'test-', external=True)
         def outer_lock():
-
             @lockutils.synchronized('testlock2', 'test-', external=True)
             def inner_lock():
                 return sentinel
+
             return inner_lock()
 
         self.assertEqual(sentinel, outer_lock())
@@ -195,8 +204,8 @@ class LockTestCase(test_base.BaseTestCase):
         for n in range(50):
             queue = multiprocessing.Queue()
             proc = multiprocessing.Process(
-                target=lock_files,
-                args=(tempfile.mkdtemp(), queue))
+                target=lock_files, args=(tempfile.mkdtemp(), queue)
+            )
             proc.start()
             children.append((proc, queue))
         for child, queue in children:
@@ -297,29 +306,31 @@ class LockTestCase(test_base.BaseTestCase):
     @mock.patch('logging.Logger.info')
     @mock.patch('os.remove')
     @mock.patch('oslo_concurrency.lockutils._get_lock_path')
-    def test_remove_lock_external_file_exists(self, path_mock, remove_mock,
-                                              log_mock):
-        lockutils.remove_external_lock_file(mock.sentinel.name,
-                                            mock.sentinel.prefix,
-                                            mock.sentinel.lock_path)
+    def test_remove_lock_external_file_exists(
+        self, path_mock, remove_mock, log_mock
+    ):
+        lockutils.remove_external_lock_file(
+            mock.sentinel.name, mock.sentinel.prefix, mock.sentinel.lock_path
+        )
 
-        path_mock.assert_called_once_with(mock.sentinel.name,
-                                          mock.sentinel.prefix,
-                                          mock.sentinel.lock_path)
+        path_mock.assert_called_once_with(
+            mock.sentinel.name, mock.sentinel.prefix, mock.sentinel.lock_path
+        )
         remove_mock.assert_called_once_with(path_mock.return_value)
         log_mock.assert_not_called()
 
     @mock.patch('logging.Logger.warning')
     @mock.patch('os.remove', side_effect=OSError(errno.ENOENT, None))
     @mock.patch('oslo_concurrency.lockutils._get_lock_path')
-    def test_remove_lock_external_file_doesnt_exists(self, path_mock,
-                                                     remove_mock, log_mock):
-        lockutils.remove_external_lock_file(mock.sentinel.name,
-                                            mock.sentinel.prefix,
-                                            mock.sentinel.lock_path)
-        path_mock.assert_called_once_with(mock.sentinel.name,
-                                          mock.sentinel.prefix,
-                                          mock.sentinel.lock_path)
+    def test_remove_lock_external_file_doesnt_exists(
+        self, path_mock, remove_mock, log_mock
+    ):
+        lockutils.remove_external_lock_file(
+            mock.sentinel.name, mock.sentinel.prefix, mock.sentinel.lock_path
+        )
+        path_mock.assert_called_once_with(
+            mock.sentinel.name, mock.sentinel.prefix, mock.sentinel.lock_path
+        )
         remove_mock.assert_called_once_with(path_mock.return_value)
         log_mock.assert_not_called()
 
@@ -327,13 +338,14 @@ class LockTestCase(test_base.BaseTestCase):
     @mock.patch('os.remove', side_effect=OSError(errno.EPERM, None))
     @mock.patch('oslo_concurrency.lockutils._get_lock_path')
     def test_remove_lock_external_file_permission_error(
-            self, path_mock, remove_mock, log_mock):
-        lockutils.remove_external_lock_file(mock.sentinel.name,
-                                            mock.sentinel.prefix,
-                                            mock.sentinel.lock_path)
-        path_mock.assert_called_once_with(mock.sentinel.name,
-                                          mock.sentinel.prefix,
-                                          mock.sentinel.lock_path)
+        self, path_mock, remove_mock, log_mock
+    ):
+        lockutils.remove_external_lock_file(
+            mock.sentinel.name, mock.sentinel.prefix, mock.sentinel.lock_path
+        )
+        path_mock.assert_called_once_with(
+            mock.sentinel.name, mock.sentinel.prefix, mock.sentinel.lock_path
+        )
         remove_mock.assert_called_once_with(path_mock.return_value)
         log_mock.assert_called()
 
@@ -351,8 +363,9 @@ class FileBasedLockingTestCase(test_base.BaseTestCase):
     def test_lock_file_exists(self):
         lock_file = os.path.join(self.lock_dir, 'lock-file')
 
-        @lockutils.synchronized('lock-file', external=True,
-                                lock_path=self.lock_dir)
+        @lockutils.synchronized(
+            'lock-file', external=True, lock_path=self.lock_dir
+        )
         def foo():
             self.assertTrue(os.path.exists(lock_file))
 
@@ -403,7 +416,7 @@ class FileBasedLockingTestCase(test_base.BaseTestCase):
                 # NOTE(bnemec): This is racy, but I don't want to add any
                 # synchronization primitives that might mask a problem
                 # with the one we're trying to test here.
-                time.sleep(.5)
+                time.sleep(0.5)
                 os._exit(0)
 
     def test_interprocess_nonblocking_external_lock(self):
@@ -411,17 +424,18 @@ class FileBasedLockingTestCase(test_base.BaseTestCase):
 
         nb_calls = multiprocessing.Value('i', 0)
 
-        @lockutils.synchronized('foo', blocking=False, external=True,
-                                lock_path=self.lock_dir)
+        @lockutils.synchronized(
+            'foo', blocking=False, external=True, lock_path=self.lock_dir
+        )
         def foo(param):
             """Simulate a long-running operation in a process."""
             param.value += 1
-            time.sleep(.5)
+            time.sleep(0.5)
 
         def other(param):
             foo(param)
 
-        process = multiprocessing.Process(target=other, args=(nb_calls, ))
+        process = multiprocessing.Process(target=other, args=(nb_calls,))
         process.start()
         # Make sure the other process grabs the lock
         start = time.time()
@@ -429,7 +443,7 @@ class FileBasedLockingTestCase(test_base.BaseTestCase):
             if time.time() - start > 5:
                 self.fail('Timed out waiting for process to grab lock')
             time.sleep(0)
-        process1 = multiprocessing.Process(target=other, args=(nb_calls, ))
+        process1 = multiprocessing.Process(target=other, args=(nb_calls,))
         process1.start()
         process1.join()
         process.join()
@@ -445,7 +459,7 @@ class FileBasedLockingTestCase(test_base.BaseTestCase):
             # NOTE(bnemec): This is racy, but I don't want to add any
             # synchronization primitives that might mask a problem
             # with the one we're trying to test here.
-            time.sleep(.5)
+            time.sleep(0.5)
             call_list.append(param)
 
         def other(param):
@@ -473,12 +487,13 @@ class FileBasedLockingTestCase(test_base.BaseTestCase):
     def test_interthread_nonblocking_external_lock(self):
         call_list = []
 
-        @lockutils.synchronized('foo', external=True, blocking=False,
-                                lock_path=self.lock_dir)
+        @lockutils.synchronized(
+            'foo', external=True, blocking=False, lock_path=self.lock_dir
+        )
         def foo(param):
             """Simulate a long-running threaded operation."""
             call_list.append(param)
-            time.sleep(.5)
+            time.sleep(0.5)
             call_list.append(param)
 
         def other(param):
@@ -501,12 +516,11 @@ class FileBasedLockingTestCase(test_base.BaseTestCase):
     def test_interthread_nonblocking_internal_lock(self):
         call_list = []
 
-        @lockutils.synchronized('foo', blocking=False,
-                                lock_path=self.lock_dir)
+        @lockutils.synchronized('foo', blocking=False, lock_path=self.lock_dir)
         def foo(param):
             # Simulate a long-running threaded operation.
             call_list.append(param)
-            time.sleep(.5)
+            time.sleep(0.5)
             call_list.append(param)
 
         def other(param):
@@ -530,14 +544,14 @@ class FileBasedLockingTestCase(test_base.BaseTestCase):
         lock_file = os.path.join(self.lock_dir, 'not-destroyed')
         with open(lock_file, 'w') as f:
             f.write('test')
-        with lockutils.lock('not-destroyed', external=True,
-                            lock_path=self.lock_dir):
+        with lockutils.lock(
+            'not-destroyed', external=True, lock_path=self.lock_dir
+        ):
             with open(lock_file) as f:
                 self.assertEqual('test', f.read())
 
 
 class LockutilsModuleTestCase(test_base.BaseTestCase):
-
     def setUp(self):
         super().setUp()
         self.old_env = os.environ.get('OSLO_LOCK_PATH')
@@ -550,21 +564,25 @@ class LockutilsModuleTestCase(test_base.BaseTestCase):
         super().tearDown()
 
     def test_main(self):
-        script = '\n'.join([
-            'import os',
-            'lock_path = os.environ.get("OSLO_LOCK_PATH")',
-            'assert lock_path is not None',
-            'assert os.path.isdir(lock_path)',
-        ])
+        script = '\n'.join(
+            [
+                'import os',
+                'lock_path = os.environ.get("OSLO_LOCK_PATH")',
+                'assert lock_path is not None',
+                'assert os.path.isdir(lock_path)',
+            ]
+        )
         argv = ['', sys.executable, '-c', script]
         retval = lockutils._lock_wrapper(argv)
         self.assertEqual(0, retval, "Bad OSLO_LOCK_PATH has been set")
 
     def test_return_value_maintained(self):
-        script = '\n'.join([
-            'import sys',
-            'sys.exit(1)',
-        ])
+        script = '\n'.join(
+            [
+                'import sys',
+                'sys.exit(1)',
+            ]
+        )
         argv = ['', sys.executable, '-c', script]
         retval = lockutils._lock_wrapper(argv)
         self.assertEqual(1, retval)
@@ -577,7 +595,6 @@ class LockutilsModuleTestCase(test_base.BaseTestCase):
 
 
 class TestLockFixture(test_base.BaseTestCase):
-
     def setUp(self):
         super().setUp()
         self.config = self.useFixture(config.Config(lockutils.CONF)).config
@@ -599,7 +616,6 @@ class TestLockFixture(test_base.BaseTestCase):
 
 
 class TestGetLockPath(test_base.BaseTestCase):
-
     def setUp(self):
         super().setUp()
         self.conf = self.useFixture(config.Config(lockutils.CONF)).conf
@@ -610,6 +626,7 @@ class TestGetLockPath(test_base.BaseTestCase):
 
     def test_get_override(self):
         lockutils._register_opts(self.conf)
-        self.conf.set_override('lock_path', '/alternate/path',
-                               group='oslo_concurrency')
+        self.conf.set_override(
+            'lock_path', '/alternate/path', group='oslo_concurrency'
+        )
         self.assertEqual('/alternate/path', lockutils.get_lock_path(self.conf))

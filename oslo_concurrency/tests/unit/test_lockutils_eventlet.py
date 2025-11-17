@@ -23,7 +23,6 @@ from oslo_concurrency import lockutils
 
 
 class TestFileLocks(test_base.BaseTestCase):
-
     def test_concurrent_green_lock_succeeds(self):
         """Verify spawn_n greenthreads with two locks run concurrently."""
         tmpdir = tempfile.mkdtemp()

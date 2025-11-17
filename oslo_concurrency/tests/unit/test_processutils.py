@@ -48,8 +48,9 @@ exit 38"""
 # This byte sequence is undecodable from most encoding
 UNDECODABLE_BYTES = b'[a\x80\xe9\xff]'
 
-TRUE_UTILITY = (sys.platform.startswith('darwin') and
-                '/usr/bin/true' or '/bin/true')
+TRUE_UTILITY = (
+    sys.platform.startswith('darwin') and '/usr/bin/true' or '/bin/true'
+)
 
 
 class UtilsTest(test_base.BaseTestCase):
@@ -57,18 +58,18 @@ class UtilsTest(test_base.BaseTestCase):
     #                need to be mock'd out. Currently they require actually
     #                running code.
     def test_execute_unknown_kwargs(self):
-        self.assertRaises(processutils.UnknownArgumentError,
-                          processutils.execute,
-                          hozer=True)
+        self.assertRaises(
+            processutils.UnknownArgumentError, processutils.execute, hozer=True
+        )
 
     @mock.patch.object(multiprocessing, 'cpu_count', return_value=8)
     def test_get_worker_count(self, mock_cpu_count):
         self.assertEqual(8, processutils.get_worker_count())
 
-    @mock.patch.object(multiprocessing, 'cpu_count',
-                       side_effect=NotImplementedError())
-    def test_get_worker_count_cpu_count_not_implemented(self,
-                                                        mock_cpu_count):
+    @mock.patch.object(
+        multiprocessing, 'cpu_count', side_effect=NotImplementedError()
+    )
+    def test_get_worker_count_cpu_count_not_implemented(self, mock_cpu_count):
         self.assertEqual(1, processutils.get_worker_count())
 
     def test_execute_with_callback(self):
@@ -78,8 +79,11 @@ class UtilsTest(test_base.BaseTestCase):
         self.assertEqual(0, on_execute_callback.call_count)
         self.assertEqual(0, on_completion_callback.call_count)
 
-        processutils.execute(TRUE_UTILITY, on_execute=on_execute_callback,
-                             on_completion=on_completion_callback)
+        processutils.execute(
+            TRUE_UTILITY,
+            on_execute=on_execute_callback,
+            on_completion=on_completion_callback,
+        )
         self.assertEqual(1, on_execute_callback.call_count)
         self.assertEqual(1, on_completion_callback.call_count)
 
@@ -93,11 +97,13 @@ class UtilsTest(test_base.BaseTestCase):
 
         mock_comm.side_effect = fake_communicate
 
-        self.assertRaises(IOError,
-                          processutils.execute,
-                          TRUE_UTILITY,
-                          on_execute=on_execute_callback,
-                          on_completion=on_completion_callback)
+        self.assertRaises(
+            IOError,
+            processutils.execute,
+            TRUE_UTILITY,
+            on_execute=on_execute_callback,
+            on_completion=on_completion_callback,
+        )
         self.assertEqual(1, on_execute_callback.call_count)
         self.assertEqual(1, on_completion_callback.call_count)
 
@@ -119,7 +125,6 @@ class UtilsTest(test_base.BaseTestCase):
 
 
 class ProcessExecutionErrorTest(test_base.BaseTestCase):
-
     def test_defaults(self):
         err = processutils.ProcessExecutionError()
         self.assertIn('None\n', str(err))
@@ -196,64 +201,87 @@ exit 1
 ''')
             fp.close()
             os.chmod(tmpfilename, 0o755)
-            self.assertRaises(processutils.ProcessExecutionError,
-                              processutils.execute,
-                              tmpfilename, tmpfilename2, attempts=10,
-                              process_input=b'foo',
-                              delay_on_retry=False)
+            self.assertRaises(
+                processutils.ProcessExecutionError,
+                processutils.execute,
+                tmpfilename,
+                tmpfilename2,
+                attempts=10,
+                process_input=b'foo',
+                delay_on_retry=False,
+            )
             fp = open(tmpfilename2)
             runs = fp.read()
             fp.close()
-            self.assertNotEqual('failure', 'stdin did not '
-                                           'always get passed '
-                                           'correctly',
-                                runs.strip())
+            self.assertNotEqual(
+                'failure',
+                'stdin did not always get passed correctly',
+                runs.strip(),
+            )
             runs = int(runs.strip())
-            self.assertEqual(10, runs, 'Ran %d times instead of 10.' % (runs,))
+            self.assertEqual(10, runs, f'Ran {runs} times instead of 10.')
         finally:
             os.unlink(tmpfilename)
             os.unlink(tmpfilename2)
 
     def test_unknown_kwargs_raises_error(self):
-        self.assertRaises(processutils.UnknownArgumentError,
-                          processutils.execute,
-                          '/usr/bin/env', 'true',
-                          this_is_not_a_valid_kwarg=True)
+        self.assertRaises(
+            processutils.UnknownArgumentError,
+            processutils.execute,
+            '/usr/bin/env',
+            'true',
+            this_is_not_a_valid_kwarg=True,
+        )
 
     def test_check_exit_code_boolean(self):
         processutils.execute('/usr/bin/env', 'false', check_exit_code=False)
-        self.assertRaises(processutils.ProcessExecutionError,
-                          processutils.execute,
-                          '/usr/bin/env', 'false', check_exit_code=True)
+        self.assertRaises(
+            processutils.ProcessExecutionError,
+            processutils.execute,
+            '/usr/bin/env',
+            'false',
+            check_exit_code=True,
+        )
 
     def test_check_cwd(self):
         tmpdir = tempfile.mkdtemp()
-        out, err = processutils.execute('/usr/bin/env',
-                                        'sh', '-c', 'pwd',
-                                        cwd=tmpdir)
+        out, err = processutils.execute(
+            '/usr/bin/env', 'sh', '-c', 'pwd', cwd=tmpdir
+        )
         self.assertIn(tmpdir, out)
 
     def test_process_input_with_string(self):
-        code = ';'.join(('import sys',
-                         'print(len(sys.stdin.readlines()))'))
+        code = ';'.join(('import sys', 'print(len(sys.stdin.readlines()))'))
         args = [sys.executable, '-c', code]
         input = "\n".join(['foo', 'bar', 'baz'])
         stdout, stderr = processutils.execute(*args, process_input=input)
         self.assertEqual("3", stdout.rstrip())
 
     def test_check_exit_code_list(self):
-        processutils.execute('/usr/bin/env', 'sh', '-c', 'exit 101',
-                             check_exit_code=(101, 102))
-        processutils.execute('/usr/bin/env', 'sh', '-c', 'exit 102',
-                             check_exit_code=(101, 102))
-        self.assertRaises(processutils.ProcessExecutionError,
-                          processutils.execute,
-                          '/usr/bin/env', 'sh', '-c', 'exit 103',
-                          check_exit_code=(101, 102))
-        self.assertRaises(processutils.ProcessExecutionError,
-                          processutils.execute,
-                          '/usr/bin/env', 'sh', '-c', 'exit 0',
-                          check_exit_code=(101, 102))
+        processutils.execute(
+            '/usr/bin/env', 'sh', '-c', 'exit 101', check_exit_code=(101, 102)
+        )
+        processutils.execute(
+            '/usr/bin/env', 'sh', '-c', 'exit 102', check_exit_code=(101, 102)
+        )
+        self.assertRaises(
+            processutils.ProcessExecutionError,
+            processutils.execute,
+            '/usr/bin/env',
+            'sh',
+            '-c',
+            'exit 103',
+            check_exit_code=(101, 102),
+        )
+        self.assertRaises(
+            processutils.ProcessExecutionError,
+            processutils.execute,
+            '/usr/bin/env',
+            'sh',
+            '-c',
+            'exit 0',
+            check_exit_code=(101, 102),
+        )
 
     def test_no_retry_on_success(self):
         fd, tmpfilename = tempfile.mkstemp()
@@ -270,10 +298,9 @@ grep foo
 """)
             fp.close()
             os.chmod(tmpfilename, 0o755)
-            processutils.execute(tmpfilename,
-                                 tmpfilename2,
-                                 process_input=b'foo',
-                                 attempts=2)
+            processutils.execute(
+                tmpfilename, tmpfilename2, process_input=b'foo', attempts=2
+            )
         finally:
             os.unlink(tmpfilename)
             os.unlink(tmpfilename2)
@@ -281,37 +308,51 @@ grep foo
     # This test and the one below ensures that when communicate raises
     # an OSError, we do the right thing(s)
     def test_exception_on_communicate_error(self):
-        mock_comm = self.useFixture(fixtures.MockPatch(
-            'subprocess.Popen.communicate',
-            side_effect=OSError(errno.EAGAIN, 'fake-test')))
+        mock_comm = self.useFixture(
+            fixtures.MockPatch(
+                'subprocess.Popen.communicate',
+                side_effect=OSError(errno.EAGAIN, 'fake-test'),
+            )
+        )
 
-        self.assertRaises(OSError,
-                          processutils.execute,
-                          '/usr/bin/env',
-                          'false',
-                          check_exit_code=False)
+        self.assertRaises(
+            OSError,
+            processutils.execute,
+            '/usr/bin/env',
+            'false',
+            check_exit_code=False,
+        )
 
         self.assertEqual(1, mock_comm.mock.call_count)
 
     def test_retry_on_communicate_error(self):
-        mock_comm = self.useFixture(fixtures.MockPatch(
-            'subprocess.Popen.communicate',
-            side_effect=OSError(errno.EAGAIN, 'fake-test')))
+        mock_comm = self.useFixture(
+            fixtures.MockPatch(
+                'subprocess.Popen.communicate',
+                side_effect=OSError(errno.EAGAIN, 'fake-test'),
+            )
+        )
 
-        self.assertRaises(OSError,
-                          processutils.execute,
-                          '/usr/bin/env',
-                          'false',
-                          check_exit_code=False,
-                          attempts=5)
+        self.assertRaises(
+            OSError,
+            processutils.execute,
+            '/usr/bin/env',
+            'false',
+            check_exit_code=False,
+            attempts=5,
+        )
 
         self.assertEqual(5, mock_comm.mock.call_count)
 
-    def _test_and_check_logging_communicate_errors(self, log_errors=None,
-                                                   attempts=None):
-        mock_comm = self.useFixture(fixtures.MockPatch(
-            'subprocess.Popen.communicate',
-            side_effect=OSError(errno.EAGAIN, 'fake-test')))
+    def _test_and_check_logging_communicate_errors(
+        self, log_errors=None, attempts=None
+    ):
+        mock_comm = self.useFixture(
+            fixtures.MockPatch(
+                'subprocess.Popen.communicate',
+                side_effect=OSError(errno.EAGAIN, 'fake-test'),
+            )
+        )
 
         fixture = self.useFixture(fixtures.FakeLogger(level=logging.DEBUG))
         kwargs = {}
@@ -322,47 +363,46 @@ grep foo
         if attempts:
             kwargs.update({"attempts": attempts})
 
-        self.assertRaises(OSError,
-                          processutils.execute,
-                          '/usr/bin/env',
-                          'false',
-                          **kwargs)
+        self.assertRaises(
+            OSError, processutils.execute, '/usr/bin/env', 'false', **kwargs
+        )
 
-        self.assertEqual(attempts if attempts else 1,
-                         mock_comm.mock.call_count)
+        self.assertEqual(
+            attempts if attempts else 1, mock_comm.mock.call_count
+        )
         self.assertIn('Got an OSError', fixture.output)
-        self.assertIn('errno: %d' % errno.EAGAIN, fixture.output)
+        self.assertIn(f'errno: {errno.EAGAIN}', fixture.output)
         self.assertIn("'/usr/bin/env false'", fixture.output)
 
     def test_logging_on_communicate_error_1(self):
         self._test_and_check_logging_communicate_errors(
-            log_errors=processutils.LOG_FINAL_ERROR,
-            attempts=None)
+            log_errors=processutils.LOG_FINAL_ERROR, attempts=None
+        )
 
     def test_logging_on_communicate_error_2(self):
         self._test_and_check_logging_communicate_errors(
-            log_errors=processutils.LOG_FINAL_ERROR,
-            attempts=1)
+            log_errors=processutils.LOG_FINAL_ERROR, attempts=1
+        )
 
     def test_logging_on_communicate_error_3(self):
         self._test_and_check_logging_communicate_errors(
-            log_errors=processutils.LOG_FINAL_ERROR,
-            attempts=5)
+            log_errors=processutils.LOG_FINAL_ERROR, attempts=5
+        )
 
     def test_logging_on_communicate_error_4(self):
         self._test_and_check_logging_communicate_errors(
-            log_errors=processutils.LOG_ALL_ERRORS,
-            attempts=None)
+            log_errors=processutils.LOG_ALL_ERRORS, attempts=None
+        )
 
     def test_logging_on_communicate_error_5(self):
         self._test_and_check_logging_communicate_errors(
-            log_errors=processutils.LOG_ALL_ERRORS,
-            attempts=1)
+            log_errors=processutils.LOG_ALL_ERRORS, attempts=1
+        )
 
     def test_logging_on_communicate_error_6(self):
         self._test_and_check_logging_communicate_errors(
-            log_errors=processutils.LOG_ALL_ERRORS,
-            attempts=5)
+            log_errors=processutils.LOG_ALL_ERRORS, attempts=5
+        )
 
     def test_with_env_variables(self):
         env_vars = {'SUPER_UNIQUE_VAR': 'The answer is 42'}
@@ -376,9 +416,9 @@ grep foo
     def test_binary(self):
         env_vars = {'SUPER_UNIQUE_VAR': 'The answer is 42'}
 
-        out, err = processutils.execute('/usr/bin/env',
-                                        env_variables=env_vars,
-                                        binary=True)
+        out, err = processutils.execute(
+            '/usr/bin/env', env_variables=env_vars, binary=True
+        )
         self.assertIsInstance(out, bytes)
         self.assertIsInstance(err, bytes)
 
@@ -386,47 +426,66 @@ grep foo
 
     def test_exception_and_masking(self):
         tmpfilename = self.create_tempfiles(
-            [["test_exceptions_and_masking",
-              TEST_EXCEPTION_AND_MASKING_SCRIPT]], ext='bash')[0]
+            [
+                [
+                    "test_exceptions_and_masking",
+                    TEST_EXCEPTION_AND_MASKING_SCRIPT,
+                ]
+            ],
+            ext='bash',
+        )[0]
 
-        os.chmod(tmpfilename, (stat.S_IRWXU |
-                               stat.S_IRGRP |
-                               stat.S_IXGRP |
-                               stat.S_IROTH |
-                               stat.S_IXOTH))
+        os.chmod(
+            tmpfilename,
+            (
+                stat.S_IRWXU
+                | stat.S_IRGRP
+                | stat.S_IXGRP
+                | stat.S_IROTH
+                | stat.S_IXOTH
+            ),
+        )
 
-        err = self.assertRaises(processutils.ProcessExecutionError,
-                                processutils.execute,
-                                tmpfilename, 'password="secret"',
-                                'something')
+        err = self.assertRaises(
+            processutils.ProcessExecutionError,
+            processutils.execute,
+            tmpfilename,
+            'password="secret"',
+            'something',
+        )
 
         self.assertEqual(38, err.exit_code)
         self.assertIsInstance(err.stdout, str)
         self.assertIsInstance(err.stderr, str)
         self.assertIn('onstdout --password="***"', err.stdout)
         self.assertIn('onstderr --password="***"', err.stderr)
-        self.assertEqual(' '.join([tmpfilename,
-                                   'password="***"',
-                                   'something']),
-                         err.cmd)
+        self.assertEqual(
+            ' '.join([tmpfilename, 'password="***"', 'something']), err.cmd
+        )
         self.assertNotIn('secret', str(err))
 
-    def execute_undecodable_bytes(self, out_bytes, err_bytes,
-                                  exitcode=0, binary=False):
-        code = ';'.join(('import sys',
-                         'sys.stdout.buffer.write(%a)' % out_bytes,
-                         'sys.stdout.flush()',
-                         'sys.stderr.buffer.write(%a)' % err_bytes,
-                         'sys.stderr.flush()',
-                         'sys.exit(%s)' % exitcode))
+    def execute_undecodable_bytes(
+        self, out_bytes, err_bytes, exitcode=0, binary=False
+    ):
+        code = ';'.join(
+            (
+                'import sys',
+                f'sys.stdout.buffer.write({out_bytes!a})',
+                'sys.stdout.flush()',
+                f'sys.stderr.buffer.write({err_bytes!a})',
+                'sys.stderr.flush()',
+                f'sys.exit({exitcode})',
+            )
+        )
 
         return processutils.execute(sys.executable, '-c', code, binary=binary)
 
     def check_undecodable_bytes(self, binary):
         out_bytes = b'out: ' + UNDECODABLE_BYTES
         err_bytes = b'err: ' + UNDECODABLE_BYTES
-        out, err = self.execute_undecodable_bytes(out_bytes, err_bytes,
-                                                  binary=binary)
+        out, err = self.execute_undecodable_bytes(
+            out_bytes, err_bytes, binary=binary
+        )
         if not binary:
             self.assertEqual(os.fsdecode(out_bytes), out)
             self.assertEqual(os.fsdecode(err_bytes), err)
@@ -443,10 +502,14 @@ grep foo
     def check_undecodable_bytes_error(self, binary):
         out_bytes = b'out: password="secret1" ' + UNDECODABLE_BYTES
         err_bytes = b'err: password="secret2" ' + UNDECODABLE_BYTES
-        exc = self.assertRaises(processutils.ProcessExecutionError,
-                                self.execute_undecodable_bytes,
-                                out_bytes, err_bytes, exitcode=1,
-                                binary=binary)
+        exc = self.assertRaises(
+            processutils.ProcessExecutionError,
+            self.execute_undecodable_bytes,
+            out_bytes,
+            err_bytes,
+            exitcode=1,
+            binary=binary,
+        )
 
         out = exc.stdout
         err = exc.stderr
@@ -463,9 +526,12 @@ grep foo
 
     def test_picklable(self):
         exc = processutils.ProcessExecutionError(
-            stdout='my stdout', stderr='my stderr',
-            exit_code=42, cmd='my cmd',
-            description='my description')
+            stdout='my stdout',
+            stderr='my stderr',
+            exit_code=42,
+            cmd='my cmd',
+            description='my description',
+        )
         exc_message = str(exc)
 
         exc = pickle.loads(pickle.dumps(exc))
@@ -482,11 +548,16 @@ grep foo
         # tests here, but I cannot check for a more precise exception because
         # subprocess.TimeoutException != subprocess.TimeoutException.
         # Checking the error message instead.
-        self.assertRaisesRegex(Exception,
-                               'timed out after 1 seconds',
-                               processutils.execute,
-                               '/usr/bin/env', 'sh', '-c', 'sleep 10',
-                               timeout=1)
+        self.assertRaisesRegex(
+            Exception,
+            'timed out after 1 seconds',
+            processutils.execute,
+            '/usr/bin/env',
+            'sh',
+            '-c',
+            'sleep 10',
+            timeout=1,
+        )
         self.assertLess(time.time(), start + 5)
 
 
@@ -494,13 +565,25 @@ class ProcessExecutionErrorLoggingTest(test_base.BaseTestCase):
     def setUp(self):
         super().setUp()
         self.tmpfilename = self.create_tempfiles(
-            [["process_execution_error_logging_test",
-              PROCESS_EXECUTION_ERROR_LOGGING_TEST]],
-            ext='bash')[0]
+            [
+                [
+                    "process_execution_error_logging_test",
+                    PROCESS_EXECUTION_ERROR_LOGGING_TEST,
+                ]
+            ],
+            ext='bash',
+        )[0]
 
-        os.chmod(self.tmpfilename, (stat.S_IRWXU | stat.S_IRGRP |
-                                    stat.S_IXGRP | stat.S_IROTH |
-                                    stat.S_IXOTH))
+        os.chmod(
+            self.tmpfilename,
+            (
+                stat.S_IRWXU
+                | stat.S_IRGRP
+                | stat.S_IXGRP
+                | stat.S_IROTH
+                | stat.S_IXOTH
+            ),
+        )
 
     def _test_and_check(self, log_errors=None, attempts=None):
         fixture = self.useFixture(fixtures.FakeLogger(level=logging.DEBUG))
@@ -512,41 +595,49 @@ class ProcessExecutionErrorLoggingTest(test_base.BaseTestCase):
         if attempts:
             kwargs.update({"attempts": attempts})
 
-        err = self.assertRaises(processutils.ProcessExecutionError,
-                                processutils.execute,
-                                self.tmpfilename,
-                                **kwargs)
+        err = self.assertRaises(
+            processutils.ProcessExecutionError,
+            processutils.execute,
+            self.tmpfilename,
+            **kwargs,
+        )
 
         self.assertEqual(41, err.exit_code)
         self.assertIn(self.tmpfilename, fixture.output)
 
     def test_with_invalid_log_errors(self):
-        self.assertRaises(processutils.InvalidArgumentError,
-                          processutils.execute,
-                          self.tmpfilename,
-                          log_errors='invalid')
+        self.assertRaises(
+            processutils.InvalidArgumentError,
+            processutils.execute,
+            self.tmpfilename,
+            log_errors='invalid',
+        )
 
     def test_with_log_errors_NONE(self):
         self._test_and_check(log_errors=None, attempts=None)
 
     def test_with_log_errors_final(self):
-        self._test_and_check(log_errors=processutils.LOG_FINAL_ERROR,
-                             attempts=None)
+        self._test_and_check(
+            log_errors=processutils.LOG_FINAL_ERROR, attempts=None
+        )
 
     def test_with_log_errors_all(self):
-        self._test_and_check(log_errors=processutils.LOG_ALL_ERRORS,
-                             attempts=None)
+        self._test_and_check(
+            log_errors=processutils.LOG_ALL_ERRORS, attempts=None
+        )
 
     def test_multiattempt_with_log_errors_NONE(self):
         self._test_and_check(log_errors=None, attempts=3)
 
     def test_multiattempt_with_log_errors_final(self):
-        self._test_and_check(log_errors=processutils.LOG_FINAL_ERROR,
-                             attempts=3)
+        self._test_and_check(
+            log_errors=processutils.LOG_FINAL_ERROR, attempts=3
+        )
 
     def test_multiattempt_with_log_errors_all(self):
-        self._test_and_check(log_errors=processutils.LOG_ALL_ERRORS,
-                             attempts=3)
+        self._test_and_check(
+            log_errors=processutils.LOG_ALL_ERRORS, attempts=3
+        )
 
 
 def fake_execute(*cmd, **kwargs):
@@ -554,34 +645,46 @@ def fake_execute(*cmd, **kwargs):
 
 
 def fake_execute_raises(*cmd, **kwargs):
-    raise processutils.ProcessExecutionError(exit_code=42,
-                                             stdout='stdout',
-                                             stderr='stderr',
-                                             cmd=['this', 'is', 'a',
-                                                  'command'])
+    raise processutils.ProcessExecutionError(
+        exit_code=42,
+        stdout='stdout',
+        stderr='stderr',
+        cmd=['this', 'is', 'a', 'command'],
+    )
 
 
 class TryCmdTestCase(test_base.BaseTestCase):
     def test_keep_warnings(self):
-        self.useFixture(fixtures.MonkeyPatch(
-            'oslo_concurrency.processutils.execute', fake_execute))
+        self.useFixture(
+            fixtures.MonkeyPatch(
+                'oslo_concurrency.processutils.execute', fake_execute
+            )
+        )
         o, e = processutils.trycmd('this is a command'.split(' '))
         self.assertNotEqual('', o)
         self.assertNotEqual('', e)
 
     def test_keep_warnings_from_raise(self):
-        self.useFixture(fixtures.MonkeyPatch(
-            'oslo_concurrency.processutils.execute', fake_execute_raises))
-        o, e = processutils.trycmd('this is a command'.split(' '),
-                                   discard_warnings=True)
+        self.useFixture(
+            fixtures.MonkeyPatch(
+                'oslo_concurrency.processutils.execute', fake_execute_raises
+            )
+        )
+        o, e = processutils.trycmd(
+            'this is a command'.split(' '), discard_warnings=True
+        )
         self.assertIsNotNone(o)
         self.assertNotEqual('', e)
 
     def test_discard_warnings(self):
-        self.useFixture(fixtures.MonkeyPatch(
-            'oslo_concurrency.processutils.execute', fake_execute))
-        o, e = processutils.trycmd('this is a command'.split(' '),
-                                   discard_warnings=True)
+        self.useFixture(
+            fixtures.MonkeyPatch(
+                'oslo_concurrency.processutils.execute', fake_execute
+            )
+        )
+        o, e = processutils.trycmd(
+            'this is a command'.split(' '), discard_warnings=True
+        )
         self.assertIsNotNone(o)
         self.assertEqual('', e)
 
@@ -610,27 +713,36 @@ class FakeSshConnection:
             raise TimeoutError()
         stdout = FakeSshStream(self.out)
         stdout.setup_channel(self.rc)
-        return (io.BytesIO(),
-                stdout,
-                io.BytesIO(self.err))
+        return (io.BytesIO(), stdout, io.BytesIO(self.err))
 
 
 class SshExecuteTestCase(test_base.BaseTestCase):
     def test_invalid_addl_env(self):
-        self.assertRaises(processutils.InvalidArgumentError,
-                          processutils.ssh_execute,
-                          None, 'ls', addl_env='important')
+        self.assertRaises(
+            processutils.InvalidArgumentError,
+            processutils.ssh_execute,
+            None,
+            'ls',
+            addl_env='important',
+        )
 
     def test_invalid_process_input(self):
-        self.assertRaises(processutils.InvalidArgumentError,
-                          processutils.ssh_execute,
-                          None, 'ls', process_input='important')
+        self.assertRaises(
+            processutils.InvalidArgumentError,
+            processutils.ssh_execute,
+            None,
+            'ls',
+            process_input='important',
+        )
 
     def test_timeout_error(self):
-        self.assertRaises(socket.timeout,
-                          processutils.ssh_execute,
-                          FakeSshConnection(0), 'ls',
-                          timeout=10)
+        self.assertRaises(
+            socket.timeout,
+            processutils.ssh_execute,
+            FakeSshConnection(0),
+            'ls',
+            timeout=10,
+        )
 
     def test_works(self):
         out, err = processutils.ssh_execute(FakeSshConnection(0), 'ls')
@@ -640,8 +752,9 @@ class SshExecuteTestCase(test_base.BaseTestCase):
         self.assertIsInstance(err, str)
 
     def test_binary(self):
-        o, e = processutils.ssh_execute(FakeSshConnection(0), 'ls',
-                                        binary=True)
+        o, e = processutils.ssh_execute(
+            FakeSshConnection(0), 'ls', binary=True
+        )
         self.assertEqual(b'stdout', o)
         self.assertEqual(b'stderr', e)
         self.assertIsInstance(o, bytes)
@@ -674,10 +787,14 @@ class SshExecuteTestCase(test_base.BaseTestCase):
         out_bytes = b'out: password="***" ' + UNDECODABLE_BYTES
         err_bytes = b'err: password="***" ' + UNDECODABLE_BYTES
 
-        exc = self.assertRaises(processutils.ProcessExecutionError,
-                                processutils.ssh_execute,
-                                conn, 'ls',
-                                binary=binary, check_exit_code=True)
+        exc = self.assertRaises(
+            processutils.ProcessExecutionError,
+            processutils.ssh_execute,
+            conn,
+            'ls',
+            binary=binary,
+            check_exit_code=True,
+        )
 
         out = exc.stdout
         err = exc.stderr
@@ -691,8 +808,12 @@ class SshExecuteTestCase(test_base.BaseTestCase):
         self.check_undecodable_bytes_error(True)
 
     def test_fails(self):
-        self.assertRaises(processutils.ProcessExecutionError,
-                          processutils.ssh_execute, FakeSshConnection(1), 'ls')
+        self.assertRaises(
+            processutils.ProcessExecutionError,
+            processutils.ssh_execute,
+            FakeSshConnection(1),
+            'ls',
+        )
 
     def _test_compromising_ssh(self, rc, check):
         fixture = self.useFixture(fixtures.FakeLogger(level=logging.DEBUG))
@@ -708,14 +829,20 @@ class SshExecuteTestCase(test_base.BaseTestCase):
         command = 'ls --password="bar"'
 
         connection = mock.Mock()
-        connection.exec_command.return_value = (fake_stdin, fake_stdout,
-                                                fake_stderr)
+        connection.exec_command.return_value = (
+            fake_stdin,
+            fake_stdout,
+            fake_stderr,
+        )
 
         if check and rc != -1 and rc != 0:
-            err = self.assertRaises(processutils.ProcessExecutionError,
-                                    processutils.ssh_execute,
-                                    connection, command,
-                                    check_exit_code=check)
+            err = self.assertRaises(
+                processutils.ProcessExecutionError,
+                processutils.ssh_execute,
+                connection,
+                command,
+                check_exit_code=check,
+            )
 
             self.assertEqual(rc, err.exit_code)
             self.assertEqual('password="***"', err.stdout)
@@ -725,11 +852,14 @@ class SshExecuteTestCase(test_base.BaseTestCase):
             self.assertNotIn('foobar', str(err))
 
             # test ssh_execute with sanitize_stdout=False
-            err = self.assertRaises(processutils.ProcessExecutionError,
-                                    processutils.ssh_execute,
-                                    connection, command,
-                                    check_exit_code=check,
-                                    sanitize_stdout=False)
+            err = self.assertRaises(
+                processutils.ProcessExecutionError,
+                processutils.ssh_execute,
+                connection,
+                command,
+                check_exit_code=check,
+                sanitize_stdout=False,
+            )
 
             self.assertEqual(rc, err.exit_code)
             self.assertEqual('password="***"', err.stdout)
@@ -738,17 +868,21 @@ class SshExecuteTestCase(test_base.BaseTestCase):
             self.assertNotIn('secret', str(err))
             self.assertNotIn('foobar', str(err))
         else:
-            o, e = processutils.ssh_execute(connection, command,
-                                            check_exit_code=check)
+            o, e = processutils.ssh_execute(
+                connection, command, check_exit_code=check
+            )
             self.assertEqual('password="***"', o)
             self.assertEqual('password="***"', e)
             self.assertIn('password="***"', fixture.output)
             self.assertNotIn('bar', fixture.output)
 
             # test ssh_execute with sanitize_stdout=False
-            o, e = processutils.ssh_execute(connection, command,
-                                            check_exit_code=check,
-                                            sanitize_stdout=False)
+            o, e = processutils.ssh_execute(
+                connection,
+                command,
+                check_exit_code=check,
+                sanitize_stdout=False,
+            )
             self.assertEqual('password="secret"', o)
             self.assertEqual('password="***"', e)
             self.assertIn('password="***"', fixture.output)
@@ -794,7 +928,7 @@ class PrlimitTestCase(test_base.BaseTestCase):
         #
         # Use 1 GB by default. Limit high enough to be able to load shared
         # libraries. Limit low enough to be work on 32-bit platforms.
-        return self.soft_limit(res, 1024, 1024 ** 3)
+        return self.soft_limit(res, 1024, 1024**3)
 
     def limit_address_space(self):
         max_memory = self.memory_limit(resource.RLIMIT_AS)
@@ -803,14 +937,19 @@ class PrlimitTestCase(test_base.BaseTestCase):
     def test_simple(self):
         # Simple test running a program (/bin/true) with no parameter
         prlimit = self.limit_address_space()
-        stdout, stderr = processutils.execute(*self.SIMPLE_PROGRAM,
-                                              prlimit=prlimit)
+        stdout, stderr = processutils.execute(
+            *self.SIMPLE_PROGRAM, prlimit=prlimit
+        )
         self.assertEqual('', stdout.rstrip())
         self.assertEqual(stderr.rstrip(), '')
 
     def check_limit(self, prlimit, resource, value):
-        code = ';'.join(('import resource',
-                         'print(resource.getrlimit(resource.%s))' % resource))
+        code = ';'.join(
+            (
+                'import resource',
+                f'print(resource.getrlimit(resource.{resource}))',
+            )
+        )
         args = [sys.executable, '-c', code]
         stdout, stderr = processutils.execute(*args, prlimit=prlimit)
         expected = (value, value)
@@ -885,9 +1024,11 @@ class PrlimitTestCase(test_base.BaseTestCase):
         except processutils.ProcessExecutionError as exc:
             self.assertEqual(1, exc.exit_code)
             self.assertEqual('', exc.stdout)
-            expected = ('%s -m oslo_concurrency.prlimit: '
-                        'failed to execute /missing_path/dont_exist/program: '
-                        % os.path.basename(sys.executable))
+            executable = os.path.basename(sys.executable)
+            expected = (
+                f'{executable} -m oslo_concurrency.prlimit: '
+                f'failed to execute /missing_path/dont_exist/program: '
+            )
             self.assertIn(expected, exc.stderr)
         else:
             self.fail("ProcessExecutionError not raised")
@@ -899,18 +1040,24 @@ class PrlimitTestCase(test_base.BaseTestCase):
         # with setrlimit() should fail.
         higher_limit = prlimit.address_space + 1024
 
-        args = [sys.executable, '-m', 'oslo_concurrency.prlimit',
-                '--as=%s' % higher_limit,
-                '--']
+        args = [
+            sys.executable,
+            '-m',
+            'oslo_concurrency.prlimit',
+            f'--as={higher_limit}',
+            '--',
+        ]
         args.extend(self.SIMPLE_PROGRAM)
         try:
             processutils.execute(*args, prlimit=prlimit)
         except processutils.ProcessExecutionError as exc:
             self.assertEqual(1, exc.exit_code)
             self.assertEqual('', exc.stdout)
-            expected = ('%s -m oslo_concurrency.prlimit: '
-                        'failed to set the AS resource limit: '
-                        % os.path.basename(sys.executable))
+            executable = os.path.basename(sys.executable)
+            expected = (
+                f'{executable} -m oslo_concurrency.prlimit: '
+                'failed to set the AS resource limit: '
+            )
             self.assertIn(expected, exc.stderr)
         else:
             self.fail("ProcessExecutionError not raised")
@@ -923,7 +1070,11 @@ class PrlimitTestCase(test_base.BaseTestCase):
         args = ['/a/command']
         prlimit = self.limit_address_space()
 
-        processutils.execute(*args, prlimit=prlimit, check_exit_code=False,
-                             python_exec='/fake_path')
+        processutils.execute(
+            *args,
+            prlimit=prlimit,
+            check_exit_code=False,
+            python_exec='/fake_path',
+        )
         python_path = sub_mock.mock_calls[0][1][0][0]
         self.assertEqual('/fake_path', python_path)

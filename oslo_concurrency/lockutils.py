@@ -46,15 +46,20 @@ LOG = logging.getLogger(__name__)
 
 
 _opts = [
-    cfg.BoolOpt('disable_process_locking', default=False,
-                help='Enables or disables inter-process locks.'),
-    cfg.StrOpt('lock_path',
-               default=os.environ.get("OSLO_LOCK_PATH"),
-               help='Directory to use for lock files.  For security, the '
-                    'specified directory should only be writable by the user '
-                    'running the processes that need locking. '
-                    'Defaults to environment variable OSLO_LOCK_PATH. '
-                    'If external locks are used, a lock path must be set.')
+    cfg.BoolOpt(
+        'disable_process_locking',
+        default=False,
+        help='Enables or disables inter-process locks.',
+    ),
+    cfg.StrOpt(
+        'lock_path',
+        default=os.environ.get("OSLO_LOCK_PATH"),
+        help='Directory to use for lock files.  For security, the '
+        'specified directory should only be writable by the user '
+        'running the processes that need locking. '
+        'Defaults to environment variable OSLO_LOCK_PATH. '
+        'If external locks are used, a lock path must be set.',
+    ),
 ]
 
 
@@ -91,6 +96,7 @@ class ReaderWriterLock(fasteners.ReaderWriterLock):
 
     .. versionadded:: 0.4
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Until https://github.com/eventlet/eventlet/issues/731 is resolved
@@ -100,7 +106,8 @@ class ReaderWriterLock(fasteners.ReaderWriterLock):
         if eventlet is not None and eventlet_patcher is not None:
             if eventlet_patcher.is_monkey_patched('thread'):
                 debtcollector.deprecate(
-                    "Eventlet support is deprecated and will be removed.")
+                    "Eventlet support is deprecated and will be removed."
+                )
                 self._current_thread = eventlet.getcurrent
 
 
@@ -211,8 +218,9 @@ def external_lock(name, lock_file_prefix=None, lock_path=None):
     return InterProcessLock(lock_file_path)
 
 
-def remove_external_lock_file(name, lock_file_prefix=None, lock_path=None,
-                              semaphores=None):
+def remove_external_lock_file(
+    name, lock_file_prefix=None, lock_path=None, semaphores=None
+):
     """Remove an external lock file when it's not used anymore
     This will be helpful when we have a lot of lock files
     """
@@ -222,13 +230,14 @@ def remove_external_lock_file(name, lock_file_prefix=None, lock_path=None,
             os.remove(lock_file_path)
         except OSError as exc:
             if exc.errno != errno.ENOENT:
-                LOG.warning('Failed to remove file %(file)s',
-                            {'file': lock_file_path})
+                LOG.warning(
+                    'Failed to remove file %(file)s', {'file': lock_file_path}
+                )
 
 
 class AcquireLockFailedException(Exception):
     def __init__(self, lock_name):
-        self.message = "Failed to acquire the lock %s" % lock_name
+        self.message = f"Failed to acquire the lock {lock_name}"
 
     def __str__(self):
         return self.message
@@ -253,8 +262,17 @@ def internal_lock(name, semaphores=None, blocking=True):
 
 
 @contextlib.contextmanager
-def lock(name, lock_file_prefix=None, external=False, lock_path=None,
-         do_log=True, semaphores=None, delay=0.01, fair=False, blocking=True):
+def lock(
+    name,
+    lock_file_prefix=None,
+    external=False,
+    lock_path=None,
+    do_log=True,
+    semaphores=None,
+    delay=0.01,
+    fair=False,
+    blocking=True,
+):
     """Context based lock
 
     This function yields a `threading.Semaphore` instance (if we don't use
@@ -299,16 +317,22 @@ def lock(name, lock_file_prefix=None, external=False, lock_path=None,
     """
     if fair:
         if semaphores is not None:
-            raise NotImplementedError(_('Specifying semaphores is not '
-                                        'supported when using fair locks.'))
+            raise NotImplementedError(
+                _(
+                    'Specifying semaphores is not '
+                    'supported when using fair locks.'
+                )
+            )
         if blocking is not True:
-            raise NotImplementedError(_('Disabling blocking is not supported '
-                                        'when using fair locks.'))
+            raise NotImplementedError(
+                _('Disabling blocking is not supported when using fair locks.')
+            )
         # The fasteners module specifies that write_lock() provides fairness.
         int_lock = internal_fair_lock(name).write_lock()
     else:
-        int_lock = internal_lock(name, semaphores=semaphores,
-                                 blocking=blocking)
+        int_lock = internal_lock(
+            name, semaphores=semaphores, blocking=blocking
+        )
     if do_log:
         LOG.debug('Acquiring lock "%s"', name)
     with int_lock:
@@ -321,8 +345,10 @@ def lock(name, lock_file_prefix=None, external=False, lock_path=None,
                 if not gotten:
                     raise AcquireLockFailedException(name)
                 if do_log:
-                    LOG.debug('Acquired external semaphore "%(lock)s"',
-                              {'lock': name})
+                    LOG.debug(
+                        'Acquired external semaphore "%(lock)s"',
+                        {'lock': name},
+                    )
                 try:
                     yield ext_lock
                 finally:
@@ -365,27 +391,33 @@ def lock_with_prefix(lock_file_prefix):
     return functools.partial(lock, lock_file_prefix=lock_file_prefix)
 
 
-def synchronized(name, lock_file_prefix=None, external=False, lock_path=None,
-                 semaphores=None, delay=0.01, fair=False, blocking=True):
+def synchronized(
+    name,
+    lock_file_prefix=None,
+    external=False,
+    lock_path=None,
+    semaphores=None,
+    delay=0.01,
+    fair=False,
+    blocking=True,
+):
     """Synchronization decorator.
 
     Decorating a method like so::
 
         @synchronized('mylock')
-        def foo(self, *args):
-           ...
+        def foo(self, *args): ...
 
     ensures that only one thread will execute the foo method at a time.
 
     Different methods can share the same lock::
 
         @synchronized('mylock')
-        def foo(self, *args):
-           ...
+        def foo(self, *args): ...
+
 
         @synchronized('mylock')
-        def bar(self, *args):
-           ...
+        def bar(self, *args): ...
 
     This way only one of either foo or bar can be executing at a time.
 
@@ -394,7 +426,6 @@ def synchronized(name, lock_file_prefix=None, external=False, lock_path=None,
     """
 
     def wrap(f):
-
         @functools.wraps(f)
         def inner(*args, **kwargs):
             t1 = timeutils.now()
@@ -403,15 +434,27 @@ def synchronized(name, lock_file_prefix=None, external=False, lock_path=None,
             f_name = reflection.get_callable_name(f)
             try:
                 LOG.debug('Acquiring lock "%s" by "%s"', name, f_name)
-                with lock(name, lock_file_prefix, external, lock_path,
-                          do_log=False, semaphores=semaphores, delay=delay,
-                          fair=fair, blocking=blocking):
+                with lock(
+                    name,
+                    lock_file_prefix,
+                    external,
+                    lock_path,
+                    do_log=False,
+                    semaphores=semaphores,
+                    delay=delay,
+                    fair=fair,
+                    blocking=blocking,
+                ):
                     t2 = timeutils.now()
-                    LOG.debug('Lock "%(name)s" acquired by "%(function)s" :: '
-                              'waited %(wait_secs)0.3fs',
-                              {'name': name,
-                               'function': f_name,
-                               'wait_secs': (t2 - t1)})
+                    LOG.debug(
+                        'Lock "%(name)s" acquired by "%(function)s" :: '
+                        'waited %(wait_secs)0.3fs',
+                        {
+                            'name': name,
+                            'function': f_name,
+                            'wait_secs': (t2 - t1),
+                        },
+                    )
                     return f(*args, **kwargs)
             except AcquireLockFailedException:
                 gotten = False
@@ -422,12 +465,17 @@ def synchronized(name, lock_file_prefix=None, external=False, lock_path=None,
                     held_secs = "N/A"
                 else:
                     held_secs = "%0.3fs" % (t3 - t2)
-                LOG.debug('Lock "%(name)s" "%(gotten)s" by "%(function)s" ::'
-                          ' held %(held_secs)s',
-                          {'name': name,
-                           'gotten': 'released' if gotten else 'unacquired',
-                           'function': f_name,
-                           'held_secs': held_secs})
+                LOG.debug(
+                    'Lock "%(name)s" "%(gotten)s" by "%(function)s" ::'
+                    ' held %(held_secs)s',
+                    {
+                        'name': name,
+                        'gotten': 'released' if gotten else 'unacquired',
+                        'function': f_name,
+                        'held_secs': held_secs,
+                    },
+                )
+
         return inner
 
     return wrap
@@ -497,8 +545,9 @@ def remove_external_lock_file_with_prefix(lock_file_prefix):
     The lock_file_prefix argument is used to provide lock files on disk with a
     meaningful prefix.
     """
-    return functools.partial(remove_external_lock_file,
-                             lock_file_prefix=lock_file_prefix)
+    return functools.partial(
+        remove_external_lock_file, lock_file_prefix=lock_file_prefix
+    )
 
 
 def _lock_wrapper(argv):
@@ -518,7 +567,9 @@ def _lock_wrapper(argv):
     lock_dir = tempfile.mkdtemp()
     os.environ["OSLO_LOCK_PATH"] = lock_dir
     try:
-        ret_val = subprocess.call(argv[1:])
+        # the user must call this explicitly with args: there's nothing
+        # untrusted about that
+        ret_val = subprocess.call(argv[1:])  # noqa: S603
     finally:
         shutil.rmtree(lock_dir, ignore_errors=True)
     return ret_val
@@ -529,6 +580,10 @@ def main():
 
 
 if __name__ == '__main__':
-    raise NotImplementedError(_('Calling lockutils directly is no longer '
-                                'supported.  Please use the '
-                                'lockutils-wrapper console script instead.'))
+    raise NotImplementedError(
+        _(
+            'Calling lockutils directly is no longer '
+            'supported.  Please use the '
+            'lockutils-wrapper console script instead.'
+        )
+    )

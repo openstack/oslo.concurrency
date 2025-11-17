@@ -16,4 +16,5 @@ import os
 
 if os.environ.get('TEST_EVENTLET'):
     import eventlet
+
     eventlet.monkey_patch()

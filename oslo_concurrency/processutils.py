@@ -50,10 +50,15 @@ class UnknownArgumentError(Exception):
 
 
 class ProcessExecutionError(Exception):
-    def __init__(self, stdout=None, stderr=None, exit_code=None, cmd=None,
-                 description=None):
-        super().__init__(
-            stdout, stderr, exit_code, cmd, description)
+    def __init__(
+        self,
+        stdout=None,
+        stderr=None,
+        exit_code=None,
+        cmd=None,
+        description=None,
+    ):
+        super().__init__(stdout, stderr, exit_code, cmd, description)
         self.exit_code = exit_code
         self.stderr = stderr
         self.stdout = stdout
@@ -69,15 +74,19 @@ class ProcessExecutionError(Exception):
         if exit_code is None:
             exit_code = '-'
 
-        message = _('%(description)s\n'
-                    'Command: %(cmd)s\n'
-                    'Exit code: %(exit_code)s\n'
-                    'Stdout: %(stdout)r\n'
-                    'Stderr: %(stderr)r') % {'description': description,
-                                             'cmd': self.cmd,
-                                             'exit_code': exit_code,
-                                             'stdout': self.stdout,
-                                             'stderr': self.stderr}
+        message = _(
+            '%(description)s\n'
+            'Command: %(cmd)s\n'
+            'Exit code: %(exit_code)s\n'
+            'Stdout: %(stdout)r\n'
+            'Stderr: %(stderr)r'
+        ) % {
+            'description': description,
+            'cmd': self.cmd,
+            'exit_code': exit_code,
+            'stdout': self.stdout,
+            'stderr': self.stderr,
+        }
         return message
 
 
@@ -154,8 +163,9 @@ class ProcessLimits:
             setattr(self, limit, kw.pop(limit, None))
 
         if kw:
-            raise ValueError("invalid limits: %s"
-                             % ', '.join(sorted(kw.keys())))
+            raise ValueError(
+                "invalid limits: {}".format(', '.join(sorted(kw.keys())))
+            )
 
     def prlimit_args(self):
         """Create a list of arguments for the prlimit command line."""
@@ -314,14 +324,18 @@ def execute(*cmd, **kwargs):
     if isinstance(log_errors, int):
         log_errors = LogErrors(log_errors)
     if not isinstance(log_errors, LogErrors):
-        raise InvalidArgumentError(_('Got invalid arg log_errors: %r') %
-                                   log_errors)
+        raise InvalidArgumentError(
+            _('Got invalid arg log_errors: %r') % log_errors
+        )
 
     if run_as_root and hasattr(os, 'geteuid') and os.geteuid() != 0:
         if not root_helper:
             raise NoRootWrapSpecified(
-                message=_('Command requested root, but did not '
-                          'specify a root helper.'))
+                message=_(
+                    'Command requested root, but did not '
+                    'specify a root helper.'
+                )
+            )
         if shell:
             # root helper has to be injected into the command string
             cmd = [' '.join((root_helper, cmd[0]))] + list(cmd[1:])
@@ -351,15 +365,18 @@ def execute(*cmd, **kwargs):
 
             on_preexec_fn = functools.partial(_subprocess_setup, preexec_fn)
 
-            obj = subprocess.Popen(cmd,
-                                   stdin=_PIPE,
-                                   stdout=_PIPE,
-                                   stderr=_PIPE,
-                                   close_fds=True,
-                                   preexec_fn=on_preexec_fn,
-                                   shell=shell,
-                                   cwd=cwd,
-                                   env=env_variables)  # nosec:B602
+            # we're okay with opening the user-provided command here
+            obj = subprocess.Popen(  # noqa: S603
+                cmd,
+                stdin=_PIPE,
+                stdout=_PIPE,
+                stderr=_PIPE,
+                close_fds=True,
+                preexec_fn=on_preexec_fn,
+                shell=shell,
+                cwd=cwd,
+                env=env_variables,
+            )
 
             if on_execute:
                 on_execute(obj)
@@ -369,11 +386,20 @@ def execute(*cmd, **kwargs):
 
                 obj.stdin.close()  # pylint: disable=E1101
                 _returncode = obj.returncode  # pylint: disable=E1101
-                LOG.log(loglevel, 'CMD "%s" returned: %s in %0.3fs',
-                        sanitized_cmd, _returncode, watch.elapsed())
+                LOG.log(
+                    loglevel,
+                    'CMD "%s" returned: %s in %0.3fs',
+                    sanitized_cmd,
+                    _returncode,
+                    watch.elapsed(),
+                )
             except subprocess.TimeoutExpired:
-                LOG.log(loglevel, 'CMD "%s" reached timeout in %0.3fs',
-                        sanitized_cmd, watch.elapsed())
+                LOG.log(
+                    loglevel,
+                    'CMD "%s" reached timeout in %0.3fs',
+                    sanitized_cmd,
+                    watch.elapsed(),
+                )
                 raise
             finally:
                 if on_completion:
@@ -385,10 +411,12 @@ def execute(*cmd, **kwargs):
                 stderr = os.fsdecode(stderr)
                 sanitized_stdout = strutils.mask_password(stdout)
                 sanitized_stderr = strutils.mask_password(stderr)
-                raise ProcessExecutionError(exit_code=_returncode,
-                                            stdout=sanitized_stdout,
-                                            stderr=sanitized_stderr,
-                                            cmd=sanitized_cmd)
+                raise ProcessExecutionError(
+                    exit_code=_returncode,
+                    stdout=sanitized_stdout,
+                    stderr=sanitized_stderr,
+                    cmd=sanitized_cmd,
+                )
             if not binary and result is not None:
                 (stdout, stderr) = result
                 # Decode from the locale using using the surrogateescape error
@@ -403,31 +431,43 @@ def execute(*cmd, **kwargs):
             # if we want to always log the errors or if this is
             # the final attempt that failed and we want to log that.
             if log_errors == LOG_ALL_ERRORS or (
-                    log_errors == LOG_FINAL_ERROR and not attempts):
+                log_errors == LOG_FINAL_ERROR and not attempts
+            ):
                 if isinstance(err, ProcessExecutionError):
-                    format = _('%(desc)r\ncommand: %(cmd)r\n'
-                               'exit code: %(code)r\nstdout: %(stdout)r\n'
-                               'stderr: %(stderr)r')
-                    LOG.log(loglevel, format, {"desc": err.description,
-                                               "cmd": err.cmd,
-                                               "code": err.exit_code,
-                                               "stdout": err.stdout,
-                                               "stderr": err.stderr})
+                    format = _(
+                        '%(desc)r\ncommand: %(cmd)r\n'
+                        'exit code: %(code)r\nstdout: %(stdout)r\n'
+                        'stderr: %(stderr)r'
+                    )
+                    LOG.log(
+                        loglevel,
+                        format,
+                        {
+                            "desc": err.description,
+                            "cmd": err.cmd,
+                            "code": err.exit_code,
+                            "stdout": err.stdout,
+                            "stderr": err.stderr,
+                        },
+                    )
                 else:
-                    format = _('Got an OSError\ncommand: %(cmd)r\n'
-                               'errno: %(errno)r')
-                    LOG.log(loglevel, format, {"cmd": sanitized_cmd,
-                                               "errno": err.errno})
+                    format = _(
+                        'Got an OSError\ncommand: %(cmd)r\nerrno: %(errno)r'
+                    )
+                    LOG.log(
+                        loglevel,
+                        format,
+                        {"cmd": sanitized_cmd, "errno": err.errno},
+                    )
 
             if not attempts:
-                LOG.log(loglevel, _('%r failed. Not Retrying.'),
-                        sanitized_cmd)
+                LOG.log(loglevel, _('%r failed. Not Retrying.'), sanitized_cmd)
                 raise
             else:
-                LOG.log(loglevel, _('%r failed. Retrying.'),
-                        sanitized_cmd)
+                LOG.log(loglevel, _('%r failed. Retrying.'), sanitized_cmd)
                 if delay_on_retry:
-                    time.sleep(random.randint(20, 200) / 100.0)
+                    # we're not using this for cryptographic purposes
+                    time.sleep(random.randint(20, 200) / 100.0)  # noqa: S311
         finally:
             # NOTE(termie): this appears to be necessary to let the subprocess
             #               call clean something up in between calls, without
@@ -468,10 +508,16 @@ def trycmd(*args, **kwargs):
     return out, err
 
 
-def ssh_execute(ssh, cmd, process_input=None,
-                addl_env=None, check_exit_code=True,
-                binary=False, timeout=None,
-                sanitize_stdout=True):
+def ssh_execute(
+    ssh,
+    cmd,
+    process_input=None,
+    addl_env=None,
+    check_exit_code=True,
+    binary=False,
+    timeout=None,
+    sanitize_stdout=True,
+):
     """Run a command through SSH.
 
     :param ssh:             An SSH Connection object.
@@ -498,7 +544,8 @@ def ssh_execute(ssh, cmd, process_input=None,
         raise InvalidArgumentError(_('process_input not supported over SSH'))
 
     stdin_stream, stdout_stream, stderr_stream = ssh.exec_command(
-        cmd, timeout=timeout)
+        cmd, timeout=timeout
+    )
     channel = stdout_stream.channel
 
     # NOTE(justinsb): This seems suspicious...
@@ -523,17 +570,19 @@ def ssh_execute(ssh, cmd, process_input=None,
 
     # exit_status == -1 if no exit code was returned
     if exit_status != -1:
-        LOG.debug('Result was %s' % exit_status)
+        LOG.debug(f'Result was {exit_status}')
         if check_exit_code and exit_status != 0:
             # In case of errors in command run, due to poor implementation of
             # command executable program, there might be chance that it leaks
             # sensitive information like password to stdout. In such cases
             # stdout needs to be sanitized even though sanitize_stdout=False.
             stdout = strutils.mask_password(stdout)
-            raise ProcessExecutionError(exit_code=exit_status,
-                                        stdout=stdout,
-                                        stderr=stderr,
-                                        cmd=sanitized_cmd)
+            raise ProcessExecutionError(
+                exit_code=exit_status,
+                stdout=stdout,
+                stderr=stderr,
+                cmd=sanitized_cmd,
+            )
 
     if binary:
         # fsencode() is the reverse operation of fsdecode()

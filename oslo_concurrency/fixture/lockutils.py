@@ -43,6 +43,7 @@ class LockFixture(fixtures.Fixture):
     This is because addCleanups are put on a LIFO queue that gets run after the
     test method exits. (either by completing or raising an exception)
     """
+
     def __init__(self, name, lock_file_prefix=None):
         self.mgr = lockutils.lock(name, lock_file_prefix, True)
 
@@ -71,6 +72,7 @@ class ExternalLockFixture(fixtures.Fixture):
 
     .. versionadded:: 0.3
     """
+
     def setUp(self):
         super().setUp()
         temp_dir = self.useFixture(fixtures.TempDir())
