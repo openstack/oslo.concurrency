@@ -415,6 +415,7 @@ def synchronized(name, lock_file_prefix=None, external=False, lock_path=None,
                     return f(*args, **kwargs)
             except AcquireLockFailedException:
                 gotten = False
+                raise
             finally:
                 t3 = timeutils.now()
                 if t2 is None:
