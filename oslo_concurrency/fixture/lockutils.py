@@ -44,10 +44,14 @@ class LockFixture(fixtures.Fixture):
     test method exits. (either by completing or raising an exception)
     """
 
-    def __init__(self, name, lock_file_prefix=None):
+    def __init__(
+        self,
+        name: str,
+        lock_file_prefix: str | None = None,
+    ):
         self.mgr = lockutils.lock(name, lock_file_prefix, True)
 
-    def setUp(self):
+    def setUp(self) -> None:
         super().setUp()
         self.addCleanup(self.mgr.__exit__, None, None, None)
         self.lock = self.mgr.__enter__()
@@ -73,7 +77,7 @@ class ExternalLockFixture(fixtures.Fixture):
     .. versionadded:: 0.3
     """
 
-    def setUp(self):
+    def setUp(self) -> None:
         super().setUp()
         temp_dir = self.useFixture(fixtures.TempDir())
         conf = self.useFixture(config.Config(lockutils.CONF)).config

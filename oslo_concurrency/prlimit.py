@@ -38,7 +38,7 @@ RESOURCES = (
 )
 
 
-def parse_args():
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description='prlimit', prog=USAGE_PROGRAM)
     parser.add_argument('--as', type=int, help='Address space limit in bytes')
     parser.add_argument(
@@ -69,7 +69,7 @@ def parse_args():
     return args
 
 
-def main():
+def main() -> None:
     args = parse_args()
 
     program = args.program

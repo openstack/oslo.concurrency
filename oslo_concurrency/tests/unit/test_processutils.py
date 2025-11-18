@@ -203,15 +203,14 @@ exit 1
                 delay_on_retry=False,
             )
             fp = open(tmpfilename2)
-            runs = fp.read()
+            runs = fp.read().strip()
             fp.close()
             self.assertNotEqual(
                 'failure',
                 'stdin did not always get passed correctly',
-                runs.strip(),
+                runs,
             )
-            runs = int(runs.strip())
-            self.assertEqual(10, runs, f'Ran {runs} times instead of 10.')
+            self.assertEqual(10, int(runs), f'Ran {runs} times instead of 10.')
         finally:
             os.unlink(tmpfilename)
             os.unlink(tmpfilename2)
@@ -643,7 +642,7 @@ class TryCmdTestCase(test_base.BaseTestCase):
                 'oslo_concurrency.processutils.execute', fake_execute
             )
         )
-        o, e = processutils.trycmd('this is a command'.split(' '))
+        o, e = processutils.trycmd(*'this is a command'.split(' '))
         self.assertNotEqual('', o)
         self.assertNotEqual('', e)
 
@@ -654,7 +653,7 @@ class TryCmdTestCase(test_base.BaseTestCase):
             )
         )
         o, e = processutils.trycmd(
-            'this is a command'.split(' '), discard_warnings=True
+            *'this is a command'.split(' '), discard_warnings=True
         )
         self.assertIsNotNone(o)
         self.assertNotEqual('', e)
@@ -666,7 +665,7 @@ class TryCmdTestCase(test_base.BaseTestCase):
             )
         )
         o, e = processutils.trycmd(
-            'this is a command'.split(' '), discard_warnings=True
+            *'this is a command'.split(' '), discard_warnings=True
         )
         self.assertIsNotNone(o)
         self.assertEqual('', e)
@@ -728,14 +727,16 @@ class SshExecuteTestCase(test_base.BaseTestCase):
         )
 
     def test_works(self):
-        out, err = processutils.ssh_execute(FakeSshConnection(0), 'ls')
+        out, err = processutils.ssh_execute(  # type: ignore
+            FakeSshConnection(0), 'ls'
+        )
         self.assertEqual('stdout', out)
         self.assertEqual('stderr', err)
         self.assertIsInstance(out, str)
         self.assertIsInstance(err, str)
 
     def test_binary(self):
-        o, e = processutils.ssh_execute(
+        o, e = processutils.ssh_execute(  # type: ignore
             FakeSshConnection(0), 'ls', binary=True
         )
         self.assertEqual(b'stdout', o)
@@ -746,9 +747,13 @@ class SshExecuteTestCase(test_base.BaseTestCase):
     def check_undecodable_bytes(self, binary):
         out_bytes = b'out: ' + UNDECODABLE_BYTES
         err_bytes = b'err: ' + UNDECODABLE_BYTES
-        conn = FakeSshConnection(0, out=out_bytes, err=err_bytes)
 
-        out, err = processutils.ssh_execute(conn, 'ls', binary=binary)
+        out, err = processutils.ssh_execute(  # type: ignore
+            FakeSshConnection(0, out=out_bytes, err=err_bytes),
+            'ls',
+            binary=binary,
+        )
+
         if not binary:
             self.assertEqual(os.fsdecode(out_bytes), out)
             self.assertEqual(os.fsdecode(err_bytes), err)
@@ -1042,7 +1047,7 @@ class PrlimitTestCase(test_base.BaseTestCase):
         else:
             self.fail("ProcessExecutionError not raised")
 
-    @mock.patch.object(processutils.subprocess, 'Popen')
+    @mock.patch('oslo_concurrency.processutils.subprocess.Popen')
     def test_python_exec(self, sub_mock):
         mock_subprocess = mock.MagicMock()
         mock_subprocess.communicate.return_value = (b'', b'')

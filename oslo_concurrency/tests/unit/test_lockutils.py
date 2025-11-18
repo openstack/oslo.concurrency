@@ -79,7 +79,7 @@ class LockTestCase(test_base.BaseTestCase):
         s1 = lockutils.Semaphores()
         s2 = lockutils.Semaphores()
         trigger = threading.Event()
-        who_ran = collections.deque()
+        who_ran: collections.deque[str] = collections.deque()
 
         def f(name, semaphores, pull_trigger):
             with lockutils.internal_lock('testing', semaphores=semaphores):
@@ -136,13 +136,13 @@ class LockTestCase(test_base.BaseTestCase):
     def test_lock_internal_fair(self):
         """Check that we're actually fair."""
 
-        def f(_id):
+        def f(_id: int) -> None:
             with lockutils.lock(
                 'testlock', 'test-', external=False, fair=True
             ):
                 lock_holder.append(_id)
 
-        lock_holder = []
+        lock_holder: list[int] = []
         threads = []
         # While holding the fair lock, spawn a bunch of threads that all try
         # to acquire the lock.  They will all block.  Then release the lock
@@ -202,7 +202,7 @@ class LockTestCase(test_base.BaseTestCase):
         """We can lock across multiple processes."""
         children = []
         for n in range(50):
-            queue = multiprocessing.Queue()
+            queue: multiprocessing.Queue[int] = multiprocessing.Queue()
             proc = multiprocessing.Process(
                 target=lock_files, args=(tempfile.mkdtemp(), queue)
             )

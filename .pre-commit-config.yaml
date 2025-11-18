@@ -23,3 +23,16 @@ repos:
       - id: ruff-check
         args: ['--fix', '--unsafe-fixes']
       - id: ruff-format
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.18.2
+    hooks:
+      - id: mypy
+        additional_dependencies:
+          - 'fixtures>=4.2.6'
+          - 'types-paramiko'
+        # keep this in-sync with '[mypy] exclude' in 'pyproject.toml'
+        exclude: |
+          (?x)(
+            doc/.*
+            | releasenotes/.*
+          )

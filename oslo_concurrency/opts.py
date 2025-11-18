@@ -15,13 +15,14 @@
 import copy
 
 from oslo_concurrency import lockutils
+from oslo_config import cfg
 
 __all__ = [
     'list_opts',
 ]
 
 
-def list_opts():
+def list_opts() -> list[tuple[str, list[cfg.Opt]]]:
     """Return a list of oslo.config options available in the library.
 
     The returned list includes all oslo.config options which may be registered

@@ -17,6 +17,7 @@
 System-level utilities and helper functions.
 """
 
+from collections.abc import Callable, Iterable
 import functools
 import logging
 import multiprocessing
@@ -27,6 +28,7 @@ import signal
 import subprocess
 import sys
 import time
+from typing import Any, cast, Literal, overload, TYPE_CHECKING
 
 import enum
 from oslo_utils import encodeutils
@@ -35,28 +37,31 @@ from oslo_utils import timeutils
 
 from oslo_concurrency._i18n import _
 
+if TYPE_CHECKING:
+    import paramiko.client
+
 
 LOG = logging.getLogger(__name__)
 
 
 class InvalidArgumentError(Exception):
-    def __init__(self, message=None):
+    def __init__(self, message: object = None) -> None:
         super().__init__(message)
 
 
 class UnknownArgumentError(Exception):
-    def __init__(self, message=None):
+    def __init__(self, message: object = None) -> None:
         super().__init__(message)
 
 
 class ProcessExecutionError(Exception):
     def __init__(
         self,
-        stdout=None,
-        stderr=None,
-        exit_code=None,
-        cmd=None,
-        description=None,
+        stdout: str | None = None,
+        stderr: str | None = None,
+        exit_code: str | int | None = None,
+        cmd: list[str] | str | None = None,
+        description: str | None = None,
     ):
         super().__init__(stdout, stderr, exit_code, cmd, description)
         self.exit_code = exit_code
@@ -65,7 +70,7 @@ class ProcessExecutionError(Exception):
         self.cmd = cmd
         self.description = description
 
-    def __str__(self):
+    def __str__(self) -> str:
         description = self.description
         if description is None:
             description = _("Unexpected error while running command.")
@@ -87,15 +92,15 @@ class ProcessExecutionError(Exception):
             'stdout': self.stdout,
             'stderr': self.stderr,
         }
-        return message
+        return cast(str, message)
 
 
 class NoRootWrapSpecified(Exception):
-    def __init__(self, message=None):
+    def __init__(self, message: object = None) -> None:
         super().__init__(message)
 
 
-def _subprocess_setup(on_preexec_fn):
+def _subprocess_setup(on_preexec_fn: Callable[..., Any] | None) -> None:
     # Python installs a SIGPIPE handler by default. This is usually not what
     # non-Python subprocesses expect.
     signal.signal(signal.SIGPIPE, signal.SIG_DFL)
@@ -161,16 +166,16 @@ class ProcessLimits:
     def __init__(
         self,
         *,
-        address_space=None,
-        core_file_size=None,
-        cpu_time=None,
-        data_size=None,
-        file_size=None,
-        memory_locked=None,
-        number_files=None,
-        number_processes=None,
-        resident_set_size=None,
-        stack_size=None,
+        address_space: int | None = None,
+        core_file_size: int | None = None,
+        cpu_time: int | None = None,
+        data_size: int | None = None,
+        file_size: int | None = None,
+        memory_locked: int | None = None,
+        number_files: int | None = None,
+        number_processes: int | None = None,
+        resident_set_size: int | None = None,
+        stack_size: int | None = None,
     ):
         self.address_space = address_space
         self.core_file_size = core_file_size
@@ -183,7 +188,7 @@ class ProcessLimits:
         self.resident_set_size = resident_set_size
         self.stack_size = stack_size
 
-    def prlimit_args(self):
+    def prlimit_args(self) -> list[str]:
         """Create a list of arguments for the prlimit command line."""
         args = []
         for limit in self._LIMITS:
@@ -194,61 +199,50 @@ class ProcessLimits:
 
 
 def execute(
-    *cmd,
-    cwd=None,
-    process_input=None,
-    env_variables=None,
-    check_exit_code=0,
-    delay_on_retry=True,
-    attempts=1,
-    run_as_root=False,
-    root_helper='',
-    shell=False,
-    loglevel=logging.DEBUG,
-    log_errors=LogErrors.DEFAULT,
-    binary=False,
-    on_execute=None,
-    on_completion=None,
-    preexec_fn=None,
-    prlimit=None,
-    python_exec=None,
-    timeout=None,
-):
+    *cmd: str,
+    cwd: str | None = None,
+    process_input: str | bytes | None = None,
+    env_variables: dict[str, str] | None = None,
+    check_exit_code: bool | int | Iterable[int] | None = 0,
+    delay_on_retry: bool = True,
+    attempts: int = 1,
+    run_as_root: bool = False,
+    root_helper: str = '',
+    shell: bool = False,
+    loglevel: int = logging.DEBUG,
+    log_errors: LogErrors = LogErrors.DEFAULT,
+    binary: bool = False,
+    on_execute: Callable[..., Any] | None = None,
+    on_completion: Callable[..., Any] | None = None,
+    preexec_fn: Callable[..., Any] | None = None,
+    prlimit: ProcessLimits | None = None,
+    python_exec: str | None = None,
+    timeout: int | None = None,
+) -> tuple[str, str] | tuple[bytes, bytes]:
     """Helper method to shell out and execute a command through subprocess.
 
     Allows optional retry.
 
     :param cmd:             Passed to subprocess.Popen.
-    :type cmd:              string
     :param cwd:             Set the current working directory
-    :type cwd:              string
     :param process_input:   Send to opened process.
-    :type process_input:    string or bytes
     :param env_variables:   Environment variables and their values that
                             will be set for the process.
-    :type env_variables:    dict
     :param check_exit_code: Single bool, int, or list of allowed exit
                             codes.  Defaults to [0].  Raise
                             :class:`ProcessExecutionError` unless
                             program exits with one of these code.
-    :type check_exit_code:  boolean, int, or [int]
     :param delay_on_retry:  True | False. Defaults to True. If set to True,
                             wait a short amount of time before retrying.
-    :type delay_on_retry:   boolean
     :param attempts:        How many times to retry cmd.
-    :type attempts:         int
     :param run_as_root:     True | False. Defaults to False. If set to True,
                             the command is prefixed by the command specified
                             in the root_helper kwarg.
-    :type run_as_root:      boolean
     :param root_helper:     command to prefix to commands called with
                             run_as_root=True
-    :type root_helper:      string
     :param shell:           whether or not there should be a shell used to
                             execute this command. Defaults to false.
-    :type shell:            boolean
     :param loglevel:        log level for execute commands.
-    :type loglevel:         int.  (Should be logging.DEBUG or logging.INFO)
     :param log_errors:      Should stdout and stderr be logged on error?
                             Possible values are
                             :py:attr:`~.LogErrors.DEFAULT`,
@@ -259,39 +253,31 @@ def execute(
                             are **only** relevant when multiple attempts of
                             command execution are requested using the
                             ``attempts`` parameter.
-    :type log_errors:       :py:class:`~.LogErrors`
     :param binary:          On Python 3, return stdout and stderr as bytes if
                             binary is True, as Unicode otherwise.
-    :type binary:           boolean
     :param on_execute:      This function will be called upon process creation
                             with the object as a argument.  The Purpose of this
                             is to allow the caller of `processutils.execute` to
                             track process creation asynchronously.
-    :type on_execute:       function(:class:`subprocess.Popen`)
     :param on_completion:   This function will be called upon process
                             completion with the object as a argument.  The
                             Purpose of this is to allow the caller of
                             `processutils.execute` to track process completion
                             asynchronously.
-    :type on_completion:    function(:class:`subprocess.Popen`)
     :param preexec_fn:      This function will be called
                             in the child process just before the child
                             is executed. WARNING: On windows, we silently
                             drop this preexec_fn as it is not supported by
                             subprocess.Popen on windows (throws a
                             ValueError)
-    :type preexec_fn:       function()
     :param prlimit:         Set resource limits on the child process. See
                             below for a detailed description.
-    :type prlimit:          :class:`ProcessLimits`
     :param python_exec:     The python executable to use for enforcing
                             prlimits. If this is not set or is None, it will
                             default to use sys.executable.
-    :type python_exec:      string
     :param timeout:         Timeout (in seconds) to wait for the process
                             termination. If timeout is reached,
                             :class:`subprocess.TimeoutExpired` is raised.
-    :type timeout:          int
     :returns:               (stdout, stderr) from process execution
     :raises:                :class:`UnknownArgumentError` on
                             receiving unknown arguments
@@ -325,7 +311,7 @@ def execute(
     """
 
     if process_input is not None:
-        process_input = encodeutils.to_utf8(process_input)
+        process_input = cast(bytes, encodeutils.to_utf8(process_input))
 
     if python_exec is None:
         python_exec = sys.executable
@@ -403,7 +389,9 @@ def execute(
             try:
                 result = obj.communicate(process_input, timeout=timeout)
 
-                obj.stdin.close()
+                if obj.stdin:
+                    obj.stdin.close()
+
                 _returncode = obj.returncode
                 LOG.log(
                     loglevel,
@@ -425,9 +413,9 @@ def execute(
                     on_completion(obj)
 
             if not ignore_exit_code and _returncode not in check_exit_code:
-                (stdout, stderr) = result
-                stdout = os.fsdecode(stdout)
-                stderr = os.fsdecode(stderr)
+                _stdout, _stderr = result
+                stdout = os.fsdecode(_stdout)
+                stderr = os.fsdecode(_stderr)
                 sanitized_stdout = strutils.mask_password(stdout)
                 sanitized_stderr = strutils.mask_password(stderr)
                 raise ProcessExecutionError(
@@ -436,16 +424,16 @@ def execute(
                     stderr=sanitized_stderr,
                     cmd=sanitized_cmd,
                 )
+
             if not binary and result is not None:
-                (stdout, stderr) = result
+                _stdout, _stderr = result
                 # Decode from the locale using using the surrogateescape error
                 # handler (decoding cannot fail)
-                stdout = os.fsdecode(stdout)
-                stderr = os.fsdecode(stderr)
+                stdout = os.fsdecode(_stdout)
+                stderr = os.fsdecode(_stderr)
                 return (stdout, stderr)
             else:
                 return result
-
         except (ProcessExecutionError, OSError) as err:
             # if we want to always log the errors or if this is
             # the final attempt that failed and we want to log that.
@@ -497,31 +485,32 @@ def execute(
             #               won't hurt anything in the stdlib case anyway.
             time.sleep(0)
 
+    # This should never be reached, but mypy requires a return statement
     raise RuntimeError("Unexpected exit from retry loop")
 
 
 def trycmd(
-    *cmd,
-    cwd=None,
-    process_input=None,
-    env_variables=None,
-    check_exit_code=0,
-    delay_on_retry=True,
-    attempts=1,
-    run_as_root=False,
-    root_helper='',
-    shell=False,
-    loglevel=logging.DEBUG,
-    log_errors=LogErrors.DEFAULT,
-    binary=False,
-    on_execute=None,
-    on_completion=None,
-    preexec_fn=None,
-    prlimit=None,
-    python_exec=None,
-    timeout=None,
-    discard_warnings=False,
-):
+    *cmd: str,
+    cwd: str | None = None,
+    process_input: str | bytes | None = None,
+    env_variables: dict[str, str] | None = None,
+    check_exit_code: bool | int | Iterable[int] | None = 0,
+    delay_on_retry: bool = True,
+    attempts: int = 1,
+    run_as_root: bool = False,
+    root_helper: str = '',
+    shell: bool = False,
+    loglevel: int = logging.DEBUG,
+    log_errors: LogErrors = LogErrors.DEFAULT,
+    binary: bool = False,
+    on_execute: Callable[..., Any] | None = None,
+    on_completion: Callable[..., Any] | None = None,
+    preexec_fn: Callable[..., Any] | None = None,
+    prlimit: ProcessLimits | None = None,
+    python_exec: str | None = None,
+    timeout: int | None = None,
+    discard_warnings: bool = False,
+) -> tuple[str | bytes, str | bytes]:
     """A wrapper around execute() to more easily handle warnings and errors.
 
     Returns an (out, err) tuple of strings containing the output of
@@ -530,7 +519,6 @@ def trycmd(
 
     :param discard_warnings:  True | False. Defaults to False. If set to True,
                               then for succeeding commands, stderr is cleared
-    :type discard_warnings:   boolean
     :returns:                 (out, err) from process execution
     """
     try:
@@ -567,16 +555,55 @@ def trycmd(
     return out, err
 
 
+@overload
 def ssh_execute(
-    ssh,
-    cmd,
-    process_input=None,
-    addl_env=None,
-    check_exit_code=True,
-    binary=False,
-    timeout=None,
-    sanitize_stdout=True,
-):
+    ssh: 'paramiko.client.SSHClient',
+    cmd: str,
+    process_input: bytes | None = None,
+    addl_env: Any = None,
+    check_exit_code: bool = True,
+    binary: Literal[True] = True,
+    timeout: int | None = None,
+    sanitize_stdout: bool = True,
+) -> tuple[bytes, bytes]: ...
+
+
+@overload
+def ssh_execute(
+    ssh: 'paramiko.client.SSHClient',
+    cmd: str,
+    process_input: bytes | None = None,
+    addl_env: Any = None,
+    check_exit_code: bool = True,
+    binary: Literal[False] = False,
+    timeout: int | None = None,
+    sanitize_stdout: bool = True,
+) -> tuple[str, str]: ...
+
+
+@overload
+def ssh_execute(
+    ssh: 'paramiko.client.SSHClient',
+    cmd: str,
+    process_input: bytes | None = None,
+    addl_env: Any = None,
+    check_exit_code: bool = True,
+    binary: bool = False,
+    timeout: int | None = None,
+    sanitize_stdout: bool = True,
+) -> tuple[str, str] | tuple[bytes, bytes]: ...
+
+
+def ssh_execute(
+    ssh: 'paramiko.client.SSHClient',
+    cmd: str,
+    process_input: bytes | None = None,
+    addl_env: Any = None,
+    check_exit_code: bool = True,
+    binary: bool = False,
+    timeout: int | None = None,
+    sanitize_stdout: bool = True,
+) -> tuple[str, str] | tuple[bytes, bytes]:
     """Run a command through SSH.
 
     :param ssh:             An SSH Connection object.
@@ -609,8 +636,8 @@ def ssh_execute(
 
     # NOTE(justinsb): This seems suspicious...
     # ...other SSH clients have buffering issues with this approach
-    stdout = stdout_stream.read()
-    stderr = stderr_stream.read()
+    _stdout = stdout_stream.read()
+    _stderr = stderr_stream.read()
 
     stdin_stream.close()
 
@@ -619,8 +646,8 @@ def ssh_execute(
     # Decode from the locale using using the surrogateescape error handler
     # (decoding cannot fail). Decode even if binary is True because
     # mask_password() requires Unicode on Python 3
-    stdout = os.fsdecode(stdout)
-    stderr = os.fsdecode(stderr)
+    stdout = os.fsdecode(_stdout)
+    stderr = os.fsdecode(_stderr)
 
     if sanitize_stdout:
         stdout = strutils.mask_password(stdout)
@@ -645,13 +672,12 @@ def ssh_execute(
 
     if binary:
         # fsencode() is the reverse operation of fsdecode()
-        stdout = os.fsencode(stdout)
-        stderr = os.fsencode(stderr)
+        return (os.fsencode(stdout), os.fsencode(stderr))
+    else:
+        return (stdout, stderr)
 
-    return (stdout, stderr)
 
-
-def get_worker_count():
+def get_worker_count() -> int:
     """Utility to get the default worker count.
 
     :returns: The number of CPUs if that can be determined, else a default

@@ -18,6 +18,7 @@ Watchdog module.
 .. versionadded:: 0.4
 """
 
+from collections.abc import Generator
 import contextlib
 import logging
 import threading
@@ -26,7 +27,12 @@ from oslo_utils import timeutils
 
 
 @contextlib.contextmanager
-def watch(logger, action, level=logging.DEBUG, after=5.0):
+def watch(
+    logger: logging.Logger,
+    action: str,
+    level: int = logging.DEBUG,
+    after: float = 5.0,
+) -> Generator[None, None, None]:
     """Log a message if an operation exceeds a time threshold.
 
     This context manager is expected to be used when you are going to
@@ -63,7 +69,7 @@ def watch(logger, action, level=logging.DEBUG, after=5.0):
     watch = timeutils.StopWatch()
     watch.start()
 
-    def log():
+    def log() -> None:
         msg = f"{action} not completed after {watch.elapsed():0.3f}s"
         logger.log(level, msg)
 

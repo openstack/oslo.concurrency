@@ -13,7 +13,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from collections.abc import Callable, Generator, Sequence
 import contextlib
+from contextlib import AbstractContextManager
 import errno
 import functools
 import logging
@@ -23,6 +25,7 @@ import subprocess
 import sys
 import tempfile
 import threading
+from typing import Any, cast, Literal, overload, ParamSpec, TypeVar, Protocol
 import weakref
 
 import debtcollector
@@ -41,9 +44,10 @@ except ImportError:
     eventlet = None
     eventlet_patcher = None
 
+P = ParamSpec('P')
+T = TypeVar('T')
 
 LOG = logging.getLogger(__name__)
-
 
 _opts = [
     cfg.BoolOpt(
@@ -63,7 +67,7 @@ _opts = [
 ]
 
 
-def _register_opts(conf):
+def _register_opts(conf: cfg.ConfigOpts) -> None:
     conf.register_opts(_opts, group='oslo_concurrency')
 
 
@@ -71,7 +75,7 @@ CONF = cfg.CONF
 _register_opts(CONF)
 
 
-def set_defaults(lock_path):
+def set_defaults(lock_path: str) -> None:
     """Set value for lock_path.
 
     This can be used by tests to set lock_path to a temporary directory.
@@ -79,7 +83,7 @@ def set_defaults(lock_path):
     cfg.set_defaults(_opts, lock_path=lock_path)
 
 
-def get_lock_path(conf):
+def get_lock_path(conf: cfg.ConfigOpts) -> str | None:
     """Return the path used for external file-based locks.
 
     :param conf: Configuration object
@@ -88,17 +92,26 @@ def get_lock_path(conf):
     .. versionadded:: 1.8
     """
     _register_opts(conf)
-    return conf.oslo_concurrency.lock_path
+    return cast(str | None, conf.oslo_concurrency.lock_path)
 
 
-class ReaderWriterLock(fasteners.ReaderWriterLock):
+class ReaderWriterLock(fasteners.ReaderWriterLock):  # type: ignore
     """A reader/writer lock.
 
     .. versionadded:: 0.4
     """
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(
+        self,
+        condition_cls: Any = threading.Condition,
+        current_thread_functor: Callable[
+            [], threading.Thread
+        ] = threading.current_thread,
+    ) -> None:
+        super().__init__(
+            condition_cls=condition_cls,
+            current_thread_functor=current_thread_functor,
+        )
         # Until https://github.com/eventlet/eventlet/issues/731 is resolved
         # we need to use eventlet.getcurrent instead of
         # threading.current_thread if we are running in a monkey patched
@@ -125,11 +138,13 @@ class FairLocks:
     removed from this container by the garbage collector.
     """
 
-    def __init__(self):
-        self._locks = weakref.WeakValueDictionary()
+    def __init__(self) -> None:
+        self._locks: weakref.WeakValueDictionary[str, ReaderWriterLock] = (
+            weakref.WeakValueDictionary()
+        )
         self._lock = threading.Lock()
 
-    def get(self, name):
+    def get(self, name: str) -> ReaderWriterLock:
         """Gets (or creates) a lock with a given name.
 
         :param name: The lock name to get/create (used to associate
@@ -153,7 +168,7 @@ class FairLocks:
 _fair_locks = FairLocks()
 
 
-def internal_fair_lock(name):
+def internal_fair_lock(name: str) -> ReaderWriterLock:
     return _fair_locks.get(name)
 
 
@@ -167,11 +182,13 @@ class Semaphores:
     .. versionadded:: 0.3
     """
 
-    def __init__(self):
-        self._semaphores = weakref.WeakValueDictionary()
+    def __init__(self) -> None:
+        self._semaphores: weakref.WeakValueDictionary[
+            str, threading.Semaphore
+        ] = weakref.WeakValueDictionary()
         self._lock = threading.Lock()
 
-    def get(self, name):
+    def get(self, name: str) -> threading.Semaphore:
         """Gets (or creates) a semaphore with a given name.
 
         :param name: The semaphore name to get/create (used to associate
@@ -188,7 +205,7 @@ class Semaphores:
                 self._semaphores[name] = sem
                 return sem
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Returns how many semaphores exist at the current time."""
         return len(self._semaphores)
 
@@ -196,7 +213,9 @@ class Semaphores:
 _semaphores = Semaphores()
 
 
-def _get_lock_path(name, lock_file_prefix, lock_path=None):
+def _get_lock_path(
+    name: str, lock_file_prefix: str | None, lock_path: str | None = None
+) -> str:
     # NOTE(mikal): the lock name cannot contain directory
     # separators
     name = name.replace(os.sep, '_')
@@ -212,16 +231,24 @@ def _get_lock_path(name, lock_file_prefix, lock_path=None):
     return os.path.join(local_lock_path, name)
 
 
-def external_lock(name, lock_file_prefix=None, lock_path=None):
+def external_lock(
+    name: str,
+    lock_file_prefix: str | None = None,
+    lock_path: str | None = None,
+) -> fasteners.InterProcessLock:
     lock_file_path = _get_lock_path(name, lock_file_prefix, lock_path)
 
     return InterProcessLock(lock_file_path)
 
 
 def remove_external_lock_file(
-    name, lock_file_prefix=None, lock_path=None, semaphores=None
-):
+    name: str,
+    lock_file_prefix: str | None,
+    lock_path: str | None = None,
+    semaphores: Semaphores | None = None,
+) -> None:
     """Remove an external lock file when it's not used anymore
+
     This will be helpful when we have a lot of lock files
     """
     with internal_lock(name, semaphores=semaphores):
@@ -236,16 +263,42 @@ def remove_external_lock_file(
 
 
 class AcquireLockFailedException(Exception):
-    def __init__(self, lock_name):
+    def __init__(self, lock_name: str) -> None:
         self.message = f"Failed to acquire the lock {lock_name}"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.message
 
 
-def internal_lock(name, semaphores=None, blocking=True):
+@overload
+def internal_lock(
+    name: str,
+    semaphores: Semaphores | None = None,
+    blocking: Literal[False] = False,
+) -> threading.Semaphore: ...
+
+
+@overload
+def internal_lock(
+    name: str,
+    semaphores: Semaphores | None = None,
+    blocking: Literal[True] = True,
+) -> AbstractContextManager[threading.Semaphore]: ...
+
+
+@overload
+def internal_lock(
+    name: str, semaphores: Semaphores | None = None, blocking: bool = True
+) -> AbstractContextManager[threading.Semaphore] | threading.Semaphore: ...
+
+
+def internal_lock(
+    name: str, semaphores: Semaphores | None = None, blocking: bool = True
+) -> AbstractContextManager[threading.Semaphore] | threading.Semaphore:
     @contextlib.contextmanager
-    def nonblocking(lock):
+    def nonblocking(
+        lock: threading.Semaphore,
+    ) -> Generator[threading.Semaphore, None, None]:
         """Try to acquire the internal lock without blocking."""
         if not lock.acquire(blocking=False):
             raise AcquireLockFailedException(name)
@@ -263,16 +316,16 @@ def internal_lock(name, semaphores=None, blocking=True):
 
 @contextlib.contextmanager
 def lock(
-    name,
-    lock_file_prefix=None,
-    external=False,
-    lock_path=None,
-    do_log=True,
-    semaphores=None,
-    delay=0.01,
-    fair=False,
-    blocking=True,
-):
+    name: str,
+    lock_file_prefix: str | None = None,
+    external: bool = False,
+    lock_path: str | None = None,
+    do_log: bool = True,
+    semaphores: Semaphores | None = None,
+    delay: float = 0.01,
+    fair: bool = False,
+    blocking: bool = True,
+) -> Generator[ReaderWriterLock, None, None]:
     """Context based lock
 
     This function yields a `threading.Semaphore` instance (if we don't use
@@ -360,7 +413,24 @@ def lock(
                 LOG.debug('Releasing lock "%(lock)s"', {'lock': name})
 
 
-def lock_with_prefix(lock_file_prefix):
+class LockPartialProtocol(Protocol):
+    def __call__(
+        self,
+        name: str,
+        *,
+        external: bool = False,
+        lock_path: str | None = None,
+        do_log: bool = True,
+        semaphores: Semaphores | None = None,
+        delay: float = 0.01,
+        fair: bool = False,
+        blocking: bool = True,
+    ) -> AbstractContextManager[ReaderWriterLock]: ...
+
+
+def lock_with_prefix(
+    lock_file_prefix: str,
+) -> LockPartialProtocol:
     """Partial object generator for the lock context manager.
 
     Redefine lock in each project like so::
@@ -392,15 +462,15 @@ def lock_with_prefix(lock_file_prefix):
 
 
 def synchronized(
-    name,
-    lock_file_prefix=None,
-    external=False,
-    lock_path=None,
-    semaphores=None,
-    delay=0.01,
-    fair=False,
-    blocking=True,
-):
+    name: str,
+    lock_file_prefix: str | None = None,
+    external: bool = False,
+    lock_path: str | None = None,
+    semaphores: Semaphores | None = None,
+    delay: float = 0.01,
+    fair: bool = False,
+    blocking: bool = True,
+) -> Callable[[Callable[P, T]], Callable[P, T]]:
     """Synchronization decorator.
 
     Decorating a method like so::
@@ -425,9 +495,9 @@ def synchronized(
        Added *delay* and *semaphores* optional parameter.
     """
 
-    def wrap(f):
+    def wrap(f: Callable[P, T]) -> Callable[P, T]:
         @functools.wraps(f)
-        def inner(*args, **kwargs):
+        def inner(*args: P.args, **kwargs: P.kwargs) -> T:
             t1 = timeutils.now()
             t2 = None
             gotten = True
@@ -481,7 +551,23 @@ def synchronized(
     return wrap
 
 
-def synchronized_with_prefix(lock_file_prefix):
+class SyncPartialProtocol(Protocol):
+    def __call__(
+        self,
+        name: str,
+        *,
+        external: bool = False,
+        lock_path: str | None = None,
+        semaphores: Semaphores | None = None,
+        delay: float = 0.01,
+        fair: bool = False,
+        blocking: bool = True,
+    ) -> Callable[[Callable[P, T]], Callable[P, T]]: ...
+
+
+def synchronized_with_prefix(
+    lock_file_prefix: str,
+) -> SyncPartialProtocol:
     """Partial object generator for the synchronization decorator.
 
     Redefine @synchronized in each project like so::
@@ -514,7 +600,19 @@ def synchronized_with_prefix(lock_file_prefix):
     return functools.partial(synchronized, lock_file_prefix=lock_file_prefix)
 
 
-def remove_external_lock_file_with_prefix(lock_file_prefix):
+class RemovePartialProtocol(Protocol):
+    def __call__(
+        self,
+        name: str,
+        *,
+        lock_path: str | None = None,
+        semaphores: Semaphores | None = None,
+    ) -> None: ...
+
+
+def remove_external_lock_file_with_prefix(
+    lock_file_prefix: str,
+) -> RemovePartialProtocol:
     """Partial object generator for the remove lock file function.
 
     Redefine remove_external_lock_file_with_prefix in each project like so::
@@ -550,7 +648,7 @@ def remove_external_lock_file_with_prefix(lock_file_prefix):
     )
 
 
-def _lock_wrapper(argv):
+def _lock_wrapper(argv: Sequence[str]) -> int:
     """Create a dir for locks and pass it to command from arguments
 
     This is exposed as a console script entry point named
@@ -575,7 +673,7 @@ def _lock_wrapper(argv):
     return ret_val
 
 
-def main():
+def main() -> None:
     sys.exit(_lock_wrapper(sys.argv))
 
 
