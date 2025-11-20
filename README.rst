@@ -1,15 +1,10 @@
-========================
-Team and repository tags
-========================
-
-.. image:: https://governance.openstack.org/tc/badges/oslo.concurrency.svg
-    :target: https://governance.openstack.org/tc/reference/tags/index.html
-
-.. Change things from this point on
-
 ================
 oslo.concurrency
 ================
+
+.. image:: https://governance.openstack.org/tc/badges/oslo.concurrency.svg
+
+.. Change things from this point on
 
 .. image:: https://img.shields.io/pypi/v/oslo.concurrency.svg
     :target: https://pypi.org/project/oslo.concurrency/
