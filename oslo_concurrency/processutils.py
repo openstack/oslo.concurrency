@@ -28,7 +28,7 @@ import signal
 import subprocess
 import sys
 import time
-from typing import Any, cast, Literal, overload, TYPE_CHECKING
+from typing import Any, Literal, overload, TYPE_CHECKING
 
 import enum
 from oslo_utils import encodeutils
@@ -92,7 +92,7 @@ class ProcessExecutionError(Exception):
             'stdout': self.stdout,
             'stderr': self.stderr,
         }
-        return cast(str, message)
+        return message
 
 
 class NoRootWrapSpecified(Exception):
@@ -311,7 +311,7 @@ def execute(
     """
 
     if process_input is not None:
-        process_input = cast(bytes, encodeutils.to_utf8(process_input))
+        process_input = encodeutils.to_utf8(process_input)
 
     if python_exec is None:
         python_exec = sys.executable

@@ -12,27 +12,14 @@ repos:
       - id: debug-statements
       - id: check-yaml
         files: .*\.(yaml|yml)$
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.14.8
+    hooks:
+      - id: ruff-check
+        args: ['--fix', '--unsafe-fixes']
+      - id: ruff-format
   - repo: https://opendev.org/openstack/hacking
     rev: 8.0.0
     hooks:
       - id: hacking
         additional_dependencies: []
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.5
-    hooks:
-      - id: ruff-check
-        args: ['--fix', '--unsafe-fixes']
-      - id: ruff-format
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.18.2
-    hooks:
-      - id: mypy
-        additional_dependencies:
-          - 'fixtures>=4.2.6'
-          - 'types-paramiko'
-        # keep this in-sync with '[mypy] exclude' in 'pyproject.toml'
-        exclude: |
-          (?x)(
-            doc/.*
-            | releasenotes/.*
-          )
