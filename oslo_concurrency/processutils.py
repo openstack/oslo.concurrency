@@ -656,7 +656,7 @@ def ssh_execute(
 
     # exit_status == -1 if no exit code was returned
     if exit_status != -1:
-        LOG.debug(f'Result was {exit_status}')
+        LOG.debug('Result was %d', exit_status)
         if check_exit_code and exit_status != 0:
             # In case of errors in command run, due to poor implementation of
             # command executable program, there might be chance that it leaks
