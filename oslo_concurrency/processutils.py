@@ -198,6 +198,78 @@ class ProcessLimits:
         return args
 
 
+@overload
+def execute(
+    *cmd: str,
+    cwd: str | None = None,
+    process_input: str | bytes | None = None,
+    env_variables: dict[str, str] | None = None,
+    check_exit_code: bool | int | Iterable[int] | None = 0,
+    delay_on_retry: bool = True,
+    attempts: int = 1,
+    run_as_root: bool = False,
+    root_helper: str = '',
+    shell: bool = False,
+    loglevel: int = logging.DEBUG,
+    log_errors: LogErrors = LogErrors.DEFAULT,
+    binary: Literal[False] = ...,
+    on_execute: Callable[..., Any] | None = None,
+    on_completion: Callable[..., Any] | None = None,
+    preexec_fn: Callable[..., Any] | None = None,
+    prlimit: ProcessLimits | None = None,
+    python_exec: str | None = None,
+    timeout: int | None = None,
+) -> tuple[str, str]: ...
+
+
+@overload
+def execute(
+    *cmd: str,
+    cwd: str | None = None,
+    process_input: str | bytes | None = None,
+    env_variables: dict[str, str] | None = None,
+    check_exit_code: bool | int | Iterable[int] | None = 0,
+    delay_on_retry: bool = True,
+    attempts: int = 1,
+    run_as_root: bool = False,
+    root_helper: str = '',
+    shell: bool = False,
+    loglevel: int = logging.DEBUG,
+    log_errors: LogErrors = LogErrors.DEFAULT,
+    binary: Literal[True] = ...,
+    on_execute: Callable[..., Any] | None = None,
+    on_completion: Callable[..., Any] | None = None,
+    preexec_fn: Callable[..., Any] | None = None,
+    prlimit: ProcessLimits | None = None,
+    python_exec: str | None = None,
+    timeout: int | None = None,
+) -> tuple[bytes, bytes]: ...
+
+
+@overload
+def execute(
+    *cmd: str,
+    cwd: str | None = None,
+    process_input: str | bytes | None = None,
+    env_variables: dict[str, str] | None = None,
+    check_exit_code: bool | int | Iterable[int] | None = 0,
+    delay_on_retry: bool = True,
+    attempts: int = 1,
+    run_as_root: bool = False,
+    root_helper: str = '',
+    shell: bool = False,
+    loglevel: int = logging.DEBUG,
+    log_errors: LogErrors = LogErrors.DEFAULT,
+    binary: bool = False,
+    on_execute: Callable[..., Any] | None = None,
+    on_completion: Callable[..., Any] | None = None,
+    preexec_fn: Callable[..., Any] | None = None,
+    prlimit: ProcessLimits | None = None,
+    python_exec: str | None = None,
+    timeout: int | None = None,
+) -> tuple[str, str] | tuple[bytes, bytes]: ...
+
+
 def execute(
     *cmd: str,
     cwd: str | None = None,
