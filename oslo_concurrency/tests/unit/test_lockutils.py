@@ -319,6 +319,17 @@ class LockTestCase(test_base.BaseTestCase):
         remove_mock.assert_called_once_with(path_mock.return_value)
         log_mock.assert_not_called()
 
+    @mock.patch('logging.Logger.info')
+    @mock.patch('os.remove')
+    @mock.patch('oslo_concurrency.lockutils._get_lock_path')
+    def test_remove_lock_external_file_exists_no_args(
+        self, path_mock, remove_mock, log_mock
+    ):
+        lockutils.remove_external_lock_file(mock.sentinel.name)
+        path_mock.assert_called_once_with(mock.sentinel.name, None, None)
+        remove_mock.assert_called_once_with(path_mock.return_value)
+        log_mock.assert_not_called()
+
     @mock.patch('logging.Logger.warning')
     @mock.patch('os.remove', side_effect=OSError(errno.ENOENT, None))
     @mock.patch('oslo_concurrency.lockutils._get_lock_path')
