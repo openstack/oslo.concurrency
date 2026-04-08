@@ -26,6 +26,7 @@ import sys
 import tempfile
 import threading
 from typing import Any, cast, Literal, overload, ParamSpec, TypeVar, Protocol
+import warnings
 import weakref
 
 import debtcollector
@@ -37,9 +38,13 @@ from oslo_utils import timeutils
 from oslo_concurrency._i18n import _
 
 try:
-    # import eventlet optionally
-    import eventlet
-    from eventlet import patcher as eventlet_patcher
+    # import eventlet optionally; note that we filter out evenlet deprecation
+    # warnings since there's nothing a user can do about them and we already
+    # log our own warning below
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore')
+        import eventlet
+        from eventlet import patcher as eventlet_patcher
 except ImportError:
     eventlet = None
     eventlet_patcher = None
