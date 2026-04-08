@@ -248,7 +248,7 @@ def external_lock(
 
 def remove_external_lock_file(
     name: str,
-    lock_file_prefix: str | None,
+    lock_file_prefix: str | None = None,
     lock_path: str | None = None,
     semaphores: Semaphores | None = None,
 ) -> None:
