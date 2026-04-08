@@ -409,10 +409,10 @@ grep foo
     def test_exception_and_masking(self):
         tmpfilename = self.create_tempfiles(
             [
-                [
+                (
                     "test_exceptions_and_masking",
                     TEST_EXCEPTION_AND_MASKING_SCRIPT,
-                ]
+                ),
             ],
             ext='bash',
         )[0]
@@ -439,6 +439,8 @@ grep foo
         self.assertEqual(38, err.exit_code)
         self.assertIsInstance(err.stdout, str)
         self.assertIsInstance(err.stderr, str)
+        assert isinstance(err.stdout, str)
+        assert isinstance(err.stderr, str)
         self.assertIn('onstdout --password="***"', err.stdout)
         self.assertIn('onstderr --password="***"', err.stderr)
         self.assertEqual(
@@ -548,10 +550,10 @@ class ProcessExecutionErrorLoggingTest(test_base.BaseTestCase):
         super().setUp()
         self.tmpfilename = self.create_tempfiles(
             [
-                [
+                (
                     "process_execution_error_logging_test",
                     PROCESS_EXECUTION_ERROR_LOGGING_TEST,
-                ]
+                ),
             ],
             ext='bash',
         )[0]
@@ -1014,6 +1016,7 @@ class PrlimitTestCase(test_base.BaseTestCase):
                 f'{executable} -m oslo_concurrency.prlimit: '
                 f'failed to execute /missing_path/dont_exist/program: '
             )
+            assert isinstance(exc.stderr, str)
             self.assertIn(expected, exc.stderr)
         else:
             self.fail("ProcessExecutionError not raised")
@@ -1043,6 +1046,7 @@ class PrlimitTestCase(test_base.BaseTestCase):
                 f'{executable} -m oslo_concurrency.prlimit: '
                 'failed to set the AS resource limit: '
             )
+            assert isinstance(exc.stderr, str)
             self.assertIn(expected, exc.stderr)
         else:
             self.fail("ProcessExecutionError not raised")
