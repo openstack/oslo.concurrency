@@ -200,10 +200,11 @@ class LockTestCase(test_base.BaseTestCase):
 
     def _do_test_lock_externally(self):
         """We can lock across multiple processes."""
+        ctx = multiprocessing.get_context('fork')
         children = []
         for n in range(50):
-            queue: multiprocessing.Queue[int] = multiprocessing.Queue()
-            proc = multiprocessing.Process(
+            queue: multiprocessing.Queue[int] = ctx.Queue()
+            proc = ctx.Process(
                 target=lock_files, args=(tempfile.mkdtemp(), queue)
             )
             proc.start()
@@ -433,7 +434,8 @@ class FileBasedLockingTestCase(test_base.BaseTestCase):
     def test_interprocess_nonblocking_external_lock(self):
         """Check that we're not actually blocking between processes."""
 
-        nb_calls = multiprocessing.Value('i', 0)
+        ctx = multiprocessing.get_context('fork')
+        nb_calls = ctx.Value('i', 0)
 
         @lockutils.synchronized(
             'foo', blocking=False, external=True, lock_path=self.lock_dir
@@ -446,7 +448,7 @@ class FileBasedLockingTestCase(test_base.BaseTestCase):
         def other(param):
             foo(param)
 
-        process = multiprocessing.Process(target=other, args=(nb_calls,))
+        process = ctx.Process(target=other, args=(nb_calls,))
         process.start()
         # Make sure the other process grabs the lock
         start = time.time()
@@ -454,7 +456,7 @@ class FileBasedLockingTestCase(test_base.BaseTestCase):
             if time.time() - start > 5:
                 self.fail('Timed out waiting for process to grab lock')
             time.sleep(0)
-        process1 = multiprocessing.Process(target=other, args=(nb_calls,))
+        process1 = ctx.Process(target=other, args=(nb_calls,))
         process1.start()
         process1.join()
         process.join()
