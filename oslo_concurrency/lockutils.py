@@ -37,22 +37,11 @@ from oslo_utils import timeutils
 
 from oslo_concurrency._i18n import _
 
-try:
-    # import eventlet optionally; note that we filter out evenlet deprecation
-    # warnings since there's nothing a user can do about them and we already
-    # log our own warning below
-    with warnings.catch_warnings():
-        warnings.simplefilter('ignore')
-        import eventlet
-        from eventlet import patcher as eventlet_patcher
-except ImportError:
-    eventlet = None
-    eventlet_patcher = None
-
 P = ParamSpec('P')
 T = TypeVar('T')
 
 LOG = logging.getLogger(__name__)
+_EVENTLET_CHECKED = False
 
 _opts = [
     cfg.BoolOpt(
@@ -117,16 +106,33 @@ class ReaderWriterLock(fasteners.ReaderWriterLock):  # type: ignore
             condition_cls=condition_cls,
             current_thread_functor=current_thread_functor,
         )
-        # Until https://github.com/eventlet/eventlet/issues/731 is resolved
-        # we need to use eventlet.getcurrent instead of
-        # threading.current_thread if we are running in a monkey patched
-        # environment
-        if eventlet is not None and eventlet_patcher is not None:
+
+        global _EVENTLET_CHECKED
+        if _EVENTLET_CHECKED:
+            return
+
+        try:
+            # import eventlet optionally; note that we filter out eventlet
+            # deprecation warnings since there's nothing a user can do about
+            # them and we already log our own warning below
+            with warnings.catch_warnings():
+                warnings.simplefilter('ignore')
+                import eventlet
+                from eventlet import patcher as eventlet_patcher
+
+            # Until https://github.com/eventlet/eventlet/issues/731 is resolved
+            # we need to use eventlet.getcurrent instead of
+            # threading.current_thread if we are running in a monkey patched
+            # environment
             if eventlet_patcher.is_monkey_patched('thread'):
                 debtcollector.deprecate(
                     "Eventlet support is deprecated and will be removed."
                 )
                 self._current_thread = eventlet.getcurrent
+        except ImportError:
+            pass
+
+        _EVENTLET_CHECKED = True
 
 
 InterProcessLock = fasteners.InterProcessLock
