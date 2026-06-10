@@ -1,0 +1,120 @@
+# Temuri Doghonadze <temuri.doghonadze@gmail.com>, 2026. #zanata
+msgid ""
+msgstr ""
+"Project-Id-Version: oslo.concurrency\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-05-28 16:51+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2026-06-09 03:25+0000\n"
+"Last-Translator: Copied by Zanata <copied-by-zanata@zanata.org>\n"
+"Language-Team: Georgian (Georgia)\n"
+"Language: ka_GE\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Zanata 4.3.3\n"
+
+msgid "2023.1 Series Release Notes"
+msgstr "2023.1 სერიის გამოცემის შენიშვნები"
+
+msgid "2023.2 Series Release Notes"
+msgstr "2023.2 სერიის გამოცემის შენიშვნები"
+
+msgid "2024.1 Series Release Notes"
+msgstr "2024.1 სერიის გამოცემის შენიშვნები"
+
+msgid "2024.2 Series Release Notes"
+msgstr "2024.2 სერიის გამოცემის შენიშვნები"
+
+msgid "2025.1 Series Release Notes"
+msgstr "2025.1 სერიის გამოცემის შენიშვნები"
+
+msgid "2025.2 Series Release Notes"
+msgstr "2025.2 სერიის გამოცემის შენიშვნები"
+
+msgid "2026.1 Series Release Notes"
+msgstr "2026.1 სერიის გამოცემის შენიშვნები"
+
+msgid "3.10.0"
+msgstr "3.10.0"
+
+msgid "3.25.0"
+msgstr "3.25.0"
+
+msgid "3.29.0"
+msgstr "3.29.0"
+
+msgid "4.0.0"
+msgstr "4.0.0"
+
+msgid "4.2.0"
+msgstr "4.2.0"
+
+msgid "5.0.0"
+msgstr "5.0.0"
+
+msgid "6.0.0"
+msgstr "6.0.0"
+
+msgid "6.2.0"
+msgstr "6.2.0"
+
+msgid "7.0.0"
+msgstr "7.0.0"
+
+msgid "7.1.0"
+msgstr "7.1.0"
+
+msgid "7.3.0"
+msgstr "7.3.0"
+
+msgid "7.5.0-2"
+msgstr "7.5.0-2"
+
+msgid "New Features"
+msgstr "ახალი ფუნქციები"
+
+msgid "Newton Series Release Notes"
+msgstr "Newton-ის გამოცემის შენიშვნები"
+
+msgid "Ocata Series Release Notes"
+msgstr "Ocata-ის გამოცემის შენიშვნები"
+
+msgid "Other Notes"
+msgstr "სხვა შენიშვნები"
+
+msgid "Pike Series Release Notes"
+msgstr "Pike-ის გამოცემის შენიშვნები"
+
+msgid "Queens Series Release Notes"
+msgstr "Queens-ის გამოცემის შენიშვნები"
+
+msgid "Rocky Series Release Notes"
+msgstr "Rocky-ის გამოცემის შენიშვნები"
+
+msgid "Stein Series Release Notes"
+msgstr "Stein-ის გამოცემის შენიშვნები"
+
+msgid "Train Series Release Notes"
+msgstr "Train-ის გამოცემის შენიშვნები"
+
+msgid "Unreleased Release Notes"
+msgstr "Unreleased-ის გამოცემის შენიშვნები"
+
+msgid "Upgrade Notes"
+msgstr "განახლების შენიშვნები"
+
+msgid "Ussuri Series Release Notes"
+msgstr "Ussuri-ის გამოცემის შენიშვნები"
+
+msgid "Victoria Series Release Notes"
+msgstr "Victoria-ის გამოცემის შენიშვნები"
+
+msgid "``disable_process_locking``"
+msgstr "``disable_process_locking``"
+
+msgid "``lock_path``"
+msgstr "``lock_path``"
+
+msgid "oslo.concurrency Release Notes"
+msgstr "oslo.concurrency-ის გამოცემის შენიშვნები"
