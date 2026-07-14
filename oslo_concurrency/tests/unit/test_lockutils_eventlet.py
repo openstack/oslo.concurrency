@@ -77,11 +77,7 @@ class TestReaderWriterLockEventlet(test_base.BaseTestCase):
         eventlet.spawn_n(acquire_write_lock, rw, thread2_acquired)
         t1_acquired = thread1_acquired.wait(1)
         t2_acquired = thread2_acquired.wait(1)
-        # This is bug https://bugs.launchpad.net/oslo.concurrency/+bug/2160596
-        # both thread acquired the same write lock at the same time.
-        self.assertTrue(t1_acquired and t2_acquired)
-        # When we fix this, the following should pass:
-        # self.assertFalse(t1_acquired and t2_acquired)
+        self.assertFalse(t1_acquired and t2_acquired)
 
     def test_second_lock_provides_mutual_exclusion_spawn(self):
         # Create a first lock to consume the _EVENTLET_CHECKED flag

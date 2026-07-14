@@ -106,11 +106,6 @@ class ReaderWriterLock(fasteners.ReaderWriterLock):  # type: ignore
             condition_cls=condition_cls,
             current_thread_functor=current_thread_functor,
         )
-
-        global _EVENTLET_CHECKED
-        if _EVENTLET_CHECKED:
-            return
-
         try:
             # import eventlet optionally; note that we filter out eventlet
             # deprecation warnings since there's nothing a user can do about
@@ -131,8 +126,6 @@ class ReaderWriterLock(fasteners.ReaderWriterLock):  # type: ignore
                 self._current_thread = eventlet.getcurrent
         except ImportError:
             pass
-
-        _EVENTLET_CHECKED = True
 
 
 InterProcessLock = fasteners.InterProcessLock
