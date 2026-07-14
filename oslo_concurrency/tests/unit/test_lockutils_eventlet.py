@@ -14,6 +14,7 @@
 
 import os
 import tempfile
+import threading
 
 import eventlet
 from eventlet import greenpool
@@ -50,6 +51,62 @@ class TestFileLocks(test_base.BaseTestCase):
         pool.waitall()
 
         self.assertTrue(self.completed)
+
+
+class TestReaderWriterLockEventlet(test_base.BaseTestCase):
+    def test_second_lock_provides_mutual_exclusion_spawn_n(self):
+        # Create a first lock to consume the _EVENTLET_CHECKED flag
+        lockutils.ReaderWriterLock()
+        # This second lock is the one affected by the bug
+        rw = lockutils.ReaderWriterLock()
+
+        thread1_acquired = threading.Event()
+        thread2_acquired = threading.Event()
+        stop = threading.Event()
+        self.addCleanup(stop.set)
+
+        def acquire_write_lock(
+            lock: lockutils.ReaderWriterLock, acquired: threading.Event
+        ) -> None:
+            lock.acquire_write_lock()
+            acquired.set()
+            stop.wait()
+            lock.release_write_lock()
+
+        eventlet.spawn_n(acquire_write_lock, rw, thread1_acquired)
+        eventlet.spawn_n(acquire_write_lock, rw, thread2_acquired)
+        t1_acquired = thread1_acquired.wait(1)
+        t2_acquired = thread2_acquired.wait(1)
+        # This is bug https://bugs.launchpad.net/oslo.concurrency/+bug/2160596
+        # both thread acquired the same write lock at the same time.
+        self.assertTrue(t1_acquired and t2_acquired)
+        # When we fix this, the following should pass:
+        # self.assertFalse(t1_acquired and t2_acquired)
+
+    def test_second_lock_provides_mutual_exclusion_spawn(self):
+        # Create a first lock to consume the _EVENTLET_CHECKED flag
+        lockutils.ReaderWriterLock()
+        # This second lock is the one affected by the bug
+        rw = lockutils.ReaderWriterLock()
+
+        thread1_acquired = threading.Event()
+        thread2_acquired = threading.Event()
+        stop = threading.Event()
+        self.addCleanup(stop.set)
+
+        def acquire_write_lock(
+            lock: lockutils.ReaderWriterLock, acquired: threading.Event
+        ) -> None:
+            lock.acquire_write_lock()
+            acquired.set()
+            stop.wait()
+            lock.release_write_lock()
+
+        eventlet.spawn(acquire_write_lock, rw, thread1_acquired)
+        eventlet.spawn(acquire_write_lock, rw, thread2_acquired)
+        t1_acquired = thread1_acquired.wait(1)
+        t2_acquired = thread2_acquired.wait(1)
+        self.assertFalse(t1_acquired and t2_acquired)
 
 
 class TestInternalLock(test_base.BaseTestCase):
