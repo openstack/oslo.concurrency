@@ -44,7 +44,7 @@ eventlet = [
 "lockutils-wrapper" = "oslo_concurrency.lockutils:main"
 
 [tool.setuptools.packages.find]
-include = ["oslo_concurrency"]
+include = ["oslo_concurrency*"]
 
 [tool.mypy]
 python_version = "3.11"
