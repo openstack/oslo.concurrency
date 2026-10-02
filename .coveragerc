@@ -1,8 +1,0 @@
-[run]
-branch = True
-source = oslo_concurrency
-omit = oslo_concurrency/tests/*
-
-[report]
-ignore_errors = True
-precision = 2
