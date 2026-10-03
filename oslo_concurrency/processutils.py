@@ -17,7 +17,7 @@
 System-level utilities and helper functions.
 """
 
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Sequence
 import functools
 import logging
 import multiprocessing
@@ -60,7 +60,7 @@ class ProcessExecutionError(Exception):
         stdout: str | None = None,
         stderr: str | None = None,
         exit_code: str | int | None = None,
-        cmd: list[str] | str | None = None,
+        cmd: Sequence[str] | str | None = None,
         description: str | None = None,
     ):
         super().__init__(stdout, stderr, exit_code, cmd, description)
