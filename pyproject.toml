@@ -52,6 +52,7 @@ source = [
     "oslo_concurrency"
 ]
 branch = true
+parallel = true
 omit = [
     "oslo_concurrency/tests/*"
 ]
