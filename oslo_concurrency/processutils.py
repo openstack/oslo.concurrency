@@ -236,7 +236,7 @@ def execute(
     shell: bool = False,
     loglevel: int = logging.DEBUG,
     log_errors: LogErrors = LogErrors.DEFAULT,
-    binary: Literal[True] = ...,
+    binary: Literal[True],
     on_execute: Callable[..., Any] | None = None,
     on_completion: Callable[..., Any] | None = None,
     preexec_fn: Callable[..., Any] | None = None,
@@ -634,10 +634,10 @@ def ssh_execute(
     process_input: bytes | None = None,
     addl_env: Any = None,
     check_exit_code: bool = True,
-    binary: Literal[True] = True,
+    binary: Literal[False] = False,
     timeout: int | None = None,
     sanitize_stdout: bool = True,
-) -> tuple[bytes, bytes]: ...
+) -> tuple[str, str]: ...
 
 
 @overload
@@ -647,10 +647,10 @@ def ssh_execute(
     process_input: bytes | None = None,
     addl_env: Any = None,
     check_exit_code: bool = True,
-    binary: Literal[False] = False,
+    binary: Literal[True] = True,
     timeout: int | None = None,
     sanitize_stdout: bool = True,
-) -> tuple[str, str]: ...
+) -> tuple[bytes, bytes]: ...
 
 
 @overload
