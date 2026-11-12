@@ -332,7 +332,7 @@ class LockTestCase(test_base.BaseTestCase):
         log_mock.assert_not_called()
 
     @mock.patch('logging.Logger.warning')
-    @mock.patch('os.remove', side_effect=OSError(errno.ENOENT, None))
+    @mock.patch('os.remove', side_effect=FileNotFoundError())
     @mock.patch('oslo_concurrency.lockutils._get_lock_path')
     def test_remove_lock_external_file_doesnt_exists(
         self, path_mock, remove_mock, log_mock

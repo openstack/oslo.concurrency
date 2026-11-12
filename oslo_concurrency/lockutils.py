@@ -16,7 +16,6 @@
 from collections.abc import Callable, Generator, Sequence
 import contextlib
 from contextlib import AbstractContextManager
-import errno
 import functools
 import logging
 import os
@@ -261,11 +260,12 @@ def remove_external_lock_file(
         lock_file_path = _get_lock_path(name, lock_file_prefix, lock_path)
         try:
             os.remove(lock_file_path)
-        except OSError as exc:
-            if exc.errno != errno.ENOENT:
-                LOG.warning(
-                    'Failed to remove file %(file)s', {'file': lock_file_path}
-                )
+        except FileNotFoundError:
+            pass
+        except OSError:
+            LOG.warning(
+                'Failed to remove file %(file)s', {'file': lock_file_path}
+            )
 
 
 class AcquireLockFailedException(Exception):
